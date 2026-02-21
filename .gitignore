@@ -1,0 +1,47 @@
+# ============================================================
+# Ditsö — Monorepo (.gitignore raíz)
+# ============================================================
+
+# ── Node / Expo (DitsoApp) ───────────────────────────────────
+node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.metro-health-check*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.tsbuildinfo
+
+# Generated native folders
+/DitsoApp/ios
+/DitsoApp/android
+
+# ── .NET (Ditso backend) ─────────────────────────────────────
+**/obj/
+**/bin/
+*.user
+*.suo
+.vs/
+*.swp
+
+# Secretos locales — NUNCA subir a GitHub
+appsettings.Development.json
+appsettings.*.local.json
+secrets.json
+
+# ── OS / Editor ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+*.orig
+
+# ── Otros ────────────────────────────────────────────────────
+*.pem
+*.key
+*.p12
+*.p8
+*.jks
+*.mobileprovision
+.env*.local
