@@ -198,3 +198,4 @@ WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0
 2026-02-21 00:10:20.090 -06:00 [INF] Executed endpoint 'Ditso.API.Controllers.BudgetsController.GetActive (Ditso.API)'
 2026-02-21 00:10:20.091 -06:00 [INF] HTTP GET /api/budgets/active responded 200 in 28.3959 ms
 2026-02-21 00:10:20.092 -06:00 [INF] Request finished HTTP/1.1 GET http://192.168.0.164:5200/api/budgets/active - 200 null application/json; charset=utf-8 32.6407ms
+2026-02-21 00:26:28.929 -06:00 [INF] Application is shutting down...

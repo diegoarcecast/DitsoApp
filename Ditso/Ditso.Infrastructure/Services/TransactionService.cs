@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Ditso.Application.DTOs.Transactions;
 using Ditso.Application.Interfaces;
 using Ditso.Domain.Entities;
+using Ditso.Domain.Enums;
 using Ditso.Infrastructure.Data;
 
 namespace Ditso.Infrastructure.Services;
@@ -31,15 +32,17 @@ public class TransactionService : ITransactionService
             .OrderByDescending(t => t.Date)
             .Select(t => new TransactionDto
             {
-                Id = t.Id,
-                CategoryId = t.CategoryId,
+                Id           = t.Id,
+                CategoryId   = t.CategoryId,
                 CategoryName = t.Category.Name,
-                Amount = t.Amount,
-                Type = t.Type.ToString(),
-                Date = t.Date,
-                Description = t.Description,
-                FileId = t.FileId,
-                CreatedAt = t.CreatedAt
+                CategoryIcon = t.Category.Icon,
+                Amount       = t.Amount,
+                Type         = t.Type.ToString(),
+                Date         = t.Date,
+                Description  = t.Description,
+                FileId       = t.FileId,
+                IsExtraIncome = t.IsExtraIncome,
+                CreatedAt    = t.CreatedAt
             })
             .ToListAsync();
 
@@ -55,57 +58,42 @@ public class TransactionService : ITransactionService
         if (transaction == null)
             return null;
 
-        return new TransactionDto
-        {
-            Id = transaction.Id,
-            CategoryId = transaction.CategoryId,
-            CategoryName = transaction.Category.Name,
-            Amount = transaction.Amount,
-            Type = transaction.Type.ToString(),
-            Date = transaction.Date,
-            Description = transaction.Description,
-            FileId = transaction.FileId,
-            CreatedAt = transaction.CreatedAt
-        };
+        return MapToDto(transaction);
     }
 
     public async Task<TransactionDto> CreateAsync(CreateTransactionDto dto, int userId)
     {
-        // Validar que la categoría existe
-        var categoryExists = await _context.Categories.AnyAsync(c => c.Id == dto.CategoryId);
-        if (!categoryExists)
-        {
-            throw new InvalidOperationException("Categoría no encontrada");
-        }
+        // ── Validar que la categoría pertenece al presupuesto activo ─────────────
+        var activeBudget = await _context.Budgets
+            .Include(b => b.Items)
+            .FirstOrDefaultAsync(b => b.UserId == userId && b.IsActive);
+
+        if (activeBudget == null)
+            throw new InvalidOperationException("No existe un presupuesto activo. Crea un presupuesto antes de registrar transacciones.");
+
+        var isValidCategory = activeBudget.Items.Any(i => i.CategoryId == dto.CategoryId);
+        if (!isValidCategory)
+            throw new InvalidOperationException(
+                "La categoría seleccionada no pertenece al presupuesto activo. " +
+                "Agrega la categoría desde el módulo Presupuesto → Administrar categorías.");
 
         var transaction = new Transaction
         {
-            UserId = userId,
-            CategoryId = dto.CategoryId,
-            Amount = dto.Amount,
-            Type = dto.Type,
-            Date = dto.Date,
-            Description = dto.Description
+            UserId        = userId,
+            CategoryId    = dto.CategoryId,
+            Amount        = dto.Amount,
+            Type          = dto.Type,
+            Date          = dto.Date,
+            Description   = dto.Description,
+            IsExtraIncome = dto.IsExtraIncome,
         };
 
         _context.Transactions.Add(transaction);
         await _context.SaveChangesAsync();
 
-        // Reload con categoria para retornar
         await _context.Entry(transaction).Reference(t => t.Category).LoadAsync();
 
-        return new TransactionDto
-        {
-            Id = transaction.Id,
-            CategoryId = transaction.CategoryId,
-            CategoryName = transaction.Category.Name,
-            Amount = transaction.Amount,
-            Type = transaction.Type.ToString(),
-            Date = transaction.Date,
-            Description = transaction.Description,
-            FileId = transaction.FileId,
-            CreatedAt = transaction.CreatedAt
-        };
+        return MapToDto(transaction);
     }
 
     public async Task<TransactionDto> UpdateAsync(int id, UpdateTransactionDto dto, int userId)
@@ -115,18 +103,19 @@ public class TransactionService : ITransactionService
             .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
 
         if (transaction == null)
-        {
             throw new InvalidOperationException("Transacción no encontrada");
-        }
 
-        // Actualizar solo campos proporcionados
         if (dto.CategoryId.HasValue)
         {
-            var categoryExists = await _context.Categories.AnyAsync(c => c.Id == dto.CategoryId.Value);
-            if (!categoryExists)
-            {
-                throw new InvalidOperationException("Categoría no encontrada");
-            }
+            // Validar que la nueva categoría pertenece también al presupuesto activo
+            var activeBudget = await _context.Budgets
+                .Include(b => b.Items)
+                .FirstOrDefaultAsync(b => b.UserId == userId && b.IsActive);
+
+            var isValid = activeBudget?.Items.Any(i => i.CategoryId == dto.CategoryId.Value) ?? false;
+            if (!isValid)
+                throw new InvalidOperationException("La categoría seleccionada no pertenece al presupuesto activo.");
+
             transaction.CategoryId = dto.CategoryId.Value;
         }
 
@@ -139,26 +128,15 @@ public class TransactionService : ITransactionService
         if (dto.Description != null)
             transaction.Description = dto.Description;
 
+        if (dto.IsExtraIncome.HasValue)
+            transaction.IsExtraIncome = dto.IsExtraIncome.Value;
+
         await _context.SaveChangesAsync();
 
-        // Reload categoria si cambió
         if (dto.CategoryId.HasValue)
-        {
             await _context.Entry(transaction).Reference(t => t.Category).LoadAsync();
-        }
 
-        return new TransactionDto
-        {
-            Id = transaction.Id,
-            CategoryId = transaction.CategoryId,
-            CategoryName = transaction.Category.Name,
-            Amount = transaction.Amount,
-            Type = transaction.Type.ToString(),
-            Date = transaction.Date,
-            Description = transaction.Description,
-            FileId = transaction.FileId,
-            CreatedAt = transaction.CreatedAt
-        };
+        return MapToDto(transaction);
     }
 
     public async Task<bool> DeleteAsync(int id, int userId)
@@ -169,10 +147,23 @@ public class TransactionService : ITransactionService
         if (transaction == null)
             return false;
 
-        // Soft delete
         transaction.IsDeleted = true;
         await _context.SaveChangesAsync();
-
         return true;
     }
+
+    private static TransactionDto MapToDto(Transaction t) => new()
+    {
+        Id           = t.Id,
+        CategoryId   = t.CategoryId,
+        CategoryName = t.Category.Name,
+        CategoryIcon = t.Category.Icon,
+        Amount       = t.Amount,
+        Type         = t.Type.ToString(),
+        Date         = t.Date,
+        Description  = t.Description,
+        FileId       = t.FileId,
+        IsExtraIncome = t.IsExtraIncome,
+        CreatedAt    = t.CreatedAt
+    };
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -9,6 +9,10 @@ import RegisterScreen from '../screens/RegisterScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import TransactionsScreen from '../screens/TransactionsScreen';
 import BudgetScreen from '../screens/BudgetScreen';
+import BalanceScreen from '../screens/BalanceScreen';
+import BudgetOnboardingScreen from '../screens/BudgetOnboardingScreen';
+import BudgetEditScreen from '../screens/BudgetEditScreen';
+import { budgetService } from '../services/budgetService';
 import { colors } from '../theme';
 
 const Stack = createNativeStackNavigator();
@@ -47,9 +51,7 @@ function MainTabs() {
                 component={DashboardScreen}
                 options={{
                     title: 'Inicio',
-                    tabBarIcon: ({ focused }) => (
-                        <TabIcon emoji="🏠" focused={focused} />
-                    ),
+                    tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" focused={focused} />,
                 }}
             />
             <Tab.Screen
@@ -57,9 +59,7 @@ function MainTabs() {
                 component={TransactionsScreen}
                 options={{
                     title: 'Transacciones',
-                    tabBarIcon: ({ focused }) => (
-                        <TabIcon emoji="💰" focused={focused} />
-                    ),
+                    tabBarIcon: ({ focused }) => <TabIcon emoji="💰" focused={focused} />,
                 }}
             />
             <Tab.Screen
@@ -67,12 +67,69 @@ function MainTabs() {
                 component={BudgetScreen}
                 options={{
                     title: 'Presupuesto',
-                    tabBarIcon: ({ focused }) => (
-                        <TabIcon emoji="🎯" focused={focused} />
-                    ),
+                    tabBarIcon: ({ focused }) => <TabIcon emoji="🎯" focused={focused} />,
+                }}
+            />
+            <Tab.Screen
+                name="Balance"
+                component={BalanceScreen}
+                options={{
+                    title: 'Balance',
+                    tabBarIcon: ({ focused }) => <TabIcon emoji="🧠" focused={focused} />,
                 }}
             />
         </Tab.Navigator>
+    );
+}
+
+/**
+ * AuthedRoot: shown when the user is authenticated.
+ * Checks for an active budget; if none found, shows the onboarding screen.
+ */
+function AuthedRoot() {
+    const [checkingBudget, setCheckingBudget] = useState(true);
+    const [hasBudget, setHasBudget] = useState(false);
+
+    const checkBudget = async () => {
+        setCheckingBudget(true);
+        try {
+            const budget = await budgetService.getActive();
+            setHasBudget(budget !== null);
+        } catch {
+            setHasBudget(false);
+        } finally {
+            setCheckingBudget(false);
+        }
+    };
+
+    useEffect(() => { checkBudget(); }, []);
+
+    if (checkingBudget) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={{ color: colors.textSecondary, marginTop: 12, fontSize: 14 }}>
+                    Verificando tu presupuesto…
+                </Text>
+            </View>
+        );
+    }
+
+    if (!hasBudget) {
+        return (
+            <BudgetOnboardingScreen onBudgetCreated={() => setHasBudget(true)} />
+        );
+    }
+
+    return (
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="MainTabs" component={MainTabs} />
+            <Stack.Screen
+                name="BudgetEdit"
+                component={BudgetEditScreen}
+                options={{ headerShown: false, animation: 'slide_from_right' }}
+            />
+        </Stack.Navigator>
     );
 }
 
@@ -82,7 +139,7 @@ export default function AppNavigator() {
     const isLoadingValue: boolean = loading === true;
     const isAuthValue: boolean = isAuthenticated === true;
 
-    if (isLoadingValue === true) {
+    if (isLoadingValue) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <ActivityIndicator size="large" color={colors.primary} />
@@ -103,7 +160,7 @@ export default function AppNavigator() {
                         />
                     </>
                 ) : (
-                    <Stack.Screen name="Main" component={MainTabs} />
+                    <Stack.Screen name="Main" component={AuthedRoot} />
                 )}
             </Stack.Navigator>
         </NavigationContainer>

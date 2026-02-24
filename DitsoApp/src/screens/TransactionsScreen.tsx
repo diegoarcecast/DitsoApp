@@ -1,23 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-    View,
-    Text,
-    StyleSheet,
-    FlatList,
-    TouchableOpacity,
-    Modal,
-    ActivityIndicator,
-    Alert,
-    RefreshControl,
-    ScrollView,
-    TextInput,
-    KeyboardAvoidingView,
-    Platform,
+    View, Text, StyleSheet, FlatList, TouchableOpacity,
+    Modal, ActivityIndicator, Alert, RefreshControl,
+    ScrollView, TextInput, KeyboardAvoidingView, Platform, Switch,
 } from 'react-native';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { transactionService } from '../services/transactionService';
-import { categoryService } from '../services/categoryService';
-import { Transaction, Category } from '../types';
+import { budgetService } from '../services/budgetService';
+import { Transaction, ActiveCategory } from '../types';
 import { colors, spacing, typography, shadows, borderRadius } from '../theme';
 import { iconToEmoji } from '../utils/iconUtils';
 
@@ -25,27 +16,30 @@ type FilterType = 'All' | 'Income' | 'Expense';
 
 export default function TransactionsScreen() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [categories, setCategories] = useState<Category[]>([]);
+    const [activeCategories, setActiveCategories] = useState<ActiveCategory[]>([]);
     const [filter, setFilter] = useState<FilterType>('All');
     const [loading, setLoading] = useState<boolean>(true);
     const [refreshing, setRefreshing] = useState<boolean>(false);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
     const [submitting, setSubmitting] = useState<boolean>(false);
+    const [loadingCats, setLoadingCats] = useState<boolean>(false);
+    // Budget period for date validation
+    const [budgetStart, setBudgetStart] = useState<Date | null>(null);
+    const [budgetEnd, setBudgetEnd] = useState<Date | null>(null);
 
     // Form state
     const [formAmount, setFormAmount] = useState<string>('');
     const [formType, setFormType] = useState<'Income' | 'Expense'>('Expense');
     const [formCategoryId, setFormCategoryId] = useState<number | null>(null);
     const [formDescription, setFormDescription] = useState<string>('');
+    const [formIsExtraIncome, setFormIsExtraIncome] = useState<boolean>(false);
+    const [formDate, setFormDate] = useState<Date>(new Date());
+    const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
 
-    const loadData = useCallback(async () => {
+    const loadTransactions = useCallback(async () => {
         try {
-            const [txs, cats] = await Promise.all([
-                transactionService.getAll(),
-                categoryService.getAll(),
-            ]);
+            const txs = await transactionService.getAll();
             setTransactions(txs);
-            setCategories(cats);
         } catch {
             Alert.alert('Error', 'No se pudieron cargar las transacciones.');
         } finally {
@@ -54,9 +48,37 @@ export default function TransactionsScreen() {
         }
     }, []);
 
-    useEffect(() => { loadData(); }, [loadData]);
+    const loadActiveCategories = useCallback(async (type: 'Income' | 'Expense') => {
+        setLoadingCats(true);
+        try {
+            const cats = await budgetService.getActiveCategories(type);
+            setActiveCategories(cats);
+        } catch {
+            setActiveCategories([]);
+        } finally {
+            setLoadingCats(false);
+        }
+    }, []);
 
-    const onRefresh = () => { setRefreshing(true); loadData(); };
+    useEffect(() => { loadTransactions(); }, [loadTransactions]);
+
+    useEffect(() => {
+        if (!modalVisible) return;
+        loadActiveCategories(formType);
+        // Load active budget dates for validation
+        budgetService.getActive().then(b => {
+            if (b) {
+                setBudgetStart(new Date(b.startDate));
+                setBudgetEnd(new Date(b.endDate));
+                // Clamp today within budget period
+                const today = new Date();
+                const end = new Date(b.endDate);
+                setFormDate(today <= end ? today : end);
+            }
+        }).catch(() => { });
+    }, [modalVisible, formType, loadActiveCategories]);
+
+    const onRefresh = () => { setRefreshing(true); loadTransactions(); };
 
     const filtered = filter === 'All'
         ? transactions
@@ -70,6 +92,9 @@ export default function TransactionsScreen() {
         setFormType('Expense');
         setFormCategoryId(null);
         setFormDescription('');
+        setFormIsExtraIncome(false);
+        setFormDate(new Date());
+        setShowDatePicker(false);
     };
 
     const handleSubmit = async () => {
@@ -82,34 +107,64 @@ export default function TransactionsScreen() {
             Alert.alert('Error', 'Selecciona una categoría.');
             return;
         }
+        // Validate date within budget period
+        if (budgetStart && formDate < budgetStart) {
+            Alert.alert('Fecha inválida', `La fecha debe ser igual o posterior al inicio del período: ${budgetStart.toLocaleDateString('es-CR')}.`);
+            return;
+        }
+        if (budgetEnd) {
+            const endOfDay = new Date(budgetEnd);
+            endOfDay.setHours(23, 59, 59);
+            if (formDate > endOfDay) {
+                Alert.alert('Fecha inválida', `La fecha debe ser igual o anterior al fin del período: ${budgetEnd.toLocaleDateString('es-CR')}.`);
+                return;
+            }
+        }
 
         setSubmitting(true);
         try {
+            // Format selected date as YYYY-MM-DD in local time
+            const y = formDate.getFullYear();
+            const m = String(formDate.getMonth() + 1).padStart(2, '0');
+            const d = String(formDate.getDate()).padStart(2, '0');
             await transactionService.create({
-                amount: amount,
+                amount,
                 type: formType,
                 categoryId: formCategoryId,
-                date: new Date().toISOString().slice(0, 10),
-                description: formDescription.trim().length > 0 ? formDescription.trim() : undefined,
+                date: `${y}-${m}-${d}`,
+                description: formDescription.trim() || undefined,
+                isExtraIncome: formType === 'Income' ? formIsExtraIncome : false,
             });
             setModalVisible(false);
             resetForm();
-            loadData();
-        } catch {
-            Alert.alert('Error', 'No se pudo crear la transacción.');
+            loadTransactions();
+        } catch (e: any) {
+            const msg = e?.response?.data?.message ?? 'No se pudo crear la transacción.';
+            Alert.alert('Error', msg);
         } finally {
             setSubmitting(false);
         }
     };
 
-    const filteredCategories = categories.filter(c => c.type === formType);
+    const handleTypeChange = (t: 'Income' | 'Expense') => {
+        setFormType(t);
+        setFormCategoryId(null);
+        setFormIsExtraIncome(false);
+    };
 
     const renderItem = ({ item }: { item: Transaction }) => (
         <View style={styles.txCard}>
             <View style={[styles.txDot, { backgroundColor: item.type === 'Income' ? colors.income : colors.expense }]} />
             <View style={styles.txInfo}>
-                <Text style={styles.txCategory}>{item.categoryName}</Text>
-                {item.description != null && item.description.length > 0 ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={styles.txCategory}>{item.categoryName}</Text>
+                    {item.isExtraIncome && (
+                        <View style={styles.extraBadge}>
+                            <Text style={styles.extraBadgeText}>Extra</Text>
+                        </View>
+                    )}
+                </View>
+                {item.description ? (
                     <Text style={styles.txDesc}>{item.description}</Text>
                 ) : null}
                 <Text style={styles.txDate}>{item.date.slice(0, 10)}</Text>
@@ -120,13 +175,17 @@ export default function TransactionsScreen() {
         </View>
     );
 
-    if (loading === true) {
+    if (loading) {
         return (
             <View style={styles.center}>
                 <ActivityIndicator size="large" color={colors.primary} />
             </View>
         );
     }
+
+    // Check if "Ingresos Adicionales" is selected
+    const selectedCat = activeCategories.find(c => c.categoryId === formCategoryId);
+    const isIngresoAdicional = selectedCat?.isSystemCategory ?? false;
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
@@ -173,11 +232,7 @@ export default function TransactionsScreen() {
             />
 
             {/* FAB */}
-            <TouchableOpacity
-                style={styles.fab}
-                onPress={() => setModalVisible(true)}
-                activeOpacity={0.8}
-            >
+            <TouchableOpacity style={styles.fab} onPress={() => setModalVisible(true)} activeOpacity={0.8}>
                 <Text style={styles.fabText}>+</Text>
             </TouchableOpacity>
 
@@ -200,7 +255,7 @@ export default function TransactionsScreen() {
                         <View style={styles.typeRow}>
                             <TouchableOpacity
                                 style={[styles.typeBtn, formType === 'Expense' ? styles.typeBtnExpense : null]}
-                                onPress={() => { setFormType('Expense'); setFormCategoryId(null); }}
+                                onPress={() => handleTypeChange('Expense')}
                             >
                                 <Text style={[styles.typeBtnText, formType === 'Expense' ? { color: colors.white } : null]}>
                                     ↓ Gasto
@@ -208,7 +263,7 @@ export default function TransactionsScreen() {
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={[styles.typeBtn, formType === 'Income' ? styles.typeBtnIncome : null]}
-                                onPress={() => { setFormType('Income'); setFormCategoryId(null); }}
+                                onPress={() => handleTypeChange('Income')}
                             >
                                 <Text style={[styles.typeBtnText, formType === 'Income' ? { color: colors.white } : null]}>
                                     ↑ Ingreso
@@ -227,22 +282,120 @@ export default function TransactionsScreen() {
                             placeholderTextColor={colors.gray400}
                         />
 
-                        {/* Categorías */}
+                        {/* Categorías del presupuesto activo */}
                         <Text style={styles.fieldLabel}>Categoría</Text>
-                        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.catScroll}>
-                            {filteredCategories.map(cat => (
-                                <TouchableOpacity
-                                    key={cat.id}
-                                    style={[styles.catChip, formCategoryId === cat.id ? styles.catChipActive : null]}
-                                    onPress={() => setFormCategoryId(cat.id)}
-                                >
-                                    <Text style={styles.catIcon}>{iconToEmoji(cat.icon)}</Text>
-                                    <Text style={[styles.catName, formCategoryId === cat.id ? { color: colors.white } : null]}>
-                                        {cat.name}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </ScrollView>
+                        {loadingCats ? (
+                            <ActivityIndicator size="small" color={colors.primary} style={{ marginBottom: spacing.md }} />
+                        ) : activeCategories.length === 0 ? (
+                            <View style={styles.noCatBanner}>
+                                <Text style={styles.noCatText}>
+                                    ⚠️ No hay categorías de {formType === 'Income' ? 'ingreso' : 'gasto'} en tu presupuesto activo.
+                                </Text>
+                                <Text style={styles.noCatHint}>
+                                    Agrégalas desde la pestaña <Text style={{ fontWeight: '700' }}>Presupuesto → Administrar categorías</Text>.
+                                </Text>
+                            </View>
+                        ) : (
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>
+                                {activeCategories.map(cat => (
+                                    <TouchableOpacity
+                                        key={cat.categoryId}
+                                        style={[styles.catChip, formCategoryId === cat.categoryId ? styles.catChipActive : null]}
+                                        onPress={() => {
+                                            setFormCategoryId(cat.categoryId);
+                                            // Si selecciona "Ingresos Adicionales", marcar automáticamente como extra
+                                            if (cat.isSystemCategory) setFormIsExtraIncome(true);
+                                            else setFormIsExtraIncome(false);
+                                        }}
+                                    >
+                                        <Text style={styles.catIcon}>{iconToEmoji(cat.icon)}</Text>
+                                        <Text style={[styles.catName, formCategoryId === cat.categoryId ? { color: colors.white } : null]}>
+                                            {cat.name}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </ScrollView>
+                        )}
+
+                        {/* Toggle "Ingreso adicional" — visible solo para Income y categorías no-sistema */}
+                        {formType === 'Income' && formCategoryId !== null && !isIngresoAdicional && (
+                            <View style={styles.extraToggleRow}>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.extraToggleLabel}>⭐ Ingreso adicional</Text>
+                                    <Text style={styles.extraToggleHint}>Horas extra, freelance, regalo, reembolso…</Text>
+                                </View>
+                                <Switch
+                                    value={formIsExtraIncome}
+                                    onValueChange={setFormIsExtraIncome}
+                                    trackColor={{ true: colors.primary }}
+                                    thumbColor={formIsExtraIncome ? colors.white : colors.gray300}
+                                />
+                            </View>
+                        )}
+                        {/* Badge explicativo si hay categoría de sistema seleccionada */}
+                        {isIngresoAdicional && (
+                            <View style={styles.extraInfoBanner}>
+                                <Text style={styles.extraInfoText}>
+                                    ⭐ Este ingreso se registrará como <Text style={{ fontWeight: '700' }}>Ingreso Adicional</Text> y aumentará tu capacidad financiera.
+                                </Text>
+                            </View>
+                        )}
+
+                        {/* Fecha */}
+                        <Text style={styles.fieldLabel}>Fecha</Text>
+                        <TouchableOpacity
+                            style={styles.datePickerBtn}
+                            onPress={() => setShowDatePicker(v => !v)}
+                        >
+                            <Text style={styles.datePickerBtnText}>
+                                📅 {formDate.toLocaleDateString('es-CR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                            </Text>
+                        </TouchableOpacity>
+                        {showDatePicker && (() => {
+                            const today = new Date();
+                            const maxDate = budgetEnd ? (today < budgetEnd ? today : budgetEnd) : today;
+                            const minDate = budgetStart ?? undefined;
+                            return (
+                                <View style={Platform.OS === 'ios' ? {
+                                    backgroundColor: '#ffffff',
+                                    borderRadius: 12,
+                                    borderWidth: 1,
+                                    borderColor: colors.border,
+                                    marginBottom: 8,
+                                    overflow: 'hidden',
+                                } : undefined}>
+                                    <DateTimePicker
+                                        value={formDate}
+                                        mode="date"
+                                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                        minimumDate={minDate}
+                                        maximumDate={maxDate}
+                                        themeVariant="light"
+                                        onChange={(event: DateTimePickerEvent, selected?: Date) => {
+                                            if (Platform.OS === 'android') {
+                                                setShowDatePicker(false);
+                                                if (event.type === 'set' && selected) setFormDate(selected);
+                                            } else {
+                                                // iOS: update live as user scrolls, don't close yet
+                                                if (selected) setFormDate(selected);
+                                            }
+                                        }}
+                                        style={Platform.OS === 'ios' ? { height: 120 } : undefined}
+                                        locale="es-CR"
+                                    />
+                                    {/* iOS: explicit Listo button to close */}
+                                    {Platform.OS === 'ios' && (
+                                        <TouchableOpacity
+                                            style={styles.datePickerDoneBtn}
+                                            onPress={() => setShowDatePicker(false)}
+                                        >
+                                            <Text style={styles.datePickerDoneText}>Listo ✓</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                </View>
+                            );
+                        })()}
+
 
                         {/* Descripción */}
                         <Text style={styles.fieldLabel}>Descripción (opcional)</Text>
@@ -264,11 +417,11 @@ export default function TransactionsScreen() {
                                 <Text style={styles.cancelText}>Cancelar</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.submitBtn, submitting === true ? styles.submitBtnDisabled : null]}
+                                style={[styles.submitBtn, submitting ? styles.submitBtnDisabled : null]}
                                 onPress={handleSubmit}
                                 disabled={submitting}
                             >
-                                {submitting === true
+                                {submitting
                                     ? <ActivityIndicator color={colors.white} />
                                     : <Text style={styles.submitText}>Guardar</Text>
                                 }
@@ -301,10 +454,8 @@ const styles = StyleSheet.create({
         ...(shadows.small as object),
     },
     filterBtn: {
-        flex: 1,
-        paddingVertical: spacing.sm,
-        borderRadius: borderRadius.md,
-        alignItems: 'center',
+        flex: 1, paddingVertical: spacing.sm,
+        borderRadius: borderRadius.md, alignItems: 'center',
         backgroundColor: colors.gray100,
     },
     filterBtnActive: { backgroundColor: colors.primary },
@@ -319,13 +470,9 @@ const styles = StyleSheet.create({
     emptySubText: { ...(typography.bodySmall as object), color: colors.textSecondary, marginTop: spacing.xs },
 
     txCard: {
-        backgroundColor: colors.white,
-        borderRadius: borderRadius.lg,
-        padding: spacing.md,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.md,
-        ...(shadows.small as object),
+        backgroundColor: colors.white, borderRadius: borderRadius.lg,
+        padding: spacing.md, flexDirection: 'row', alignItems: 'center',
+        gap: spacing.md, ...(shadows.small as object),
     },
     txDot: { width: 10, height: 10, borderRadius: 5 },
     txInfo: { flex: 1 },
@@ -333,17 +480,16 @@ const styles = StyleSheet.create({
     txDesc: { ...(typography.caption as object), color: colors.textSecondary },
     txDate: { ...(typography.caption as object), color: colors.gray400, marginTop: 2 },
     txAmount: { ...(typography.body as object), fontWeight: 'bold' },
+    extraBadge: {
+        backgroundColor: colors.accent + '30', borderRadius: 6,
+        paddingHorizontal: 6, paddingVertical: 2,
+    },
+    extraBadgeText: { fontSize: 10, fontWeight: '700', color: colors.accent },
 
     fab: {
-        position: 'absolute',
-        bottom: spacing.xl,
-        right: spacing.lg,
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: colors.primary,
-        justifyContent: 'center',
-        alignItems: 'center',
+        position: 'absolute', bottom: spacing.xl, right: spacing.lg,
+        width: 56, height: 56, borderRadius: 28,
+        backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center',
         ...(shadows.large as object),
     },
     fabText: { color: colors.white, fontSize: 28, lineHeight: 30, fontWeight: '300' },
@@ -351,15 +497,12 @@ const styles = StyleSheet.create({
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
     modalSheet: {
         backgroundColor: colors.white,
-        borderTopLeftRadius: borderRadius.xl,
-        borderTopRightRadius: borderRadius.xl,
-        padding: spacing.lg,
-        paddingBottom: spacing.xxl,
+        borderTopLeftRadius: borderRadius.xl, borderTopRightRadius: borderRadius.xl,
+        padding: spacing.lg, paddingBottom: spacing.xxl,
     },
     modalHandle: {
         width: 40, height: 4, borderRadius: 2,
-        backgroundColor: colors.gray300,
-        alignSelf: 'center', marginBottom: spacing.md,
+        backgroundColor: colors.gray300, alignSelf: 'center', marginBottom: spacing.md,
     },
     modalTitle: { ...(typography.h2 as object), fontSize: 20, color: colors.text, marginBottom: spacing.md },
 
@@ -376,26 +519,64 @@ const styles = StyleSheet.create({
     amountInput: {
         borderWidth: 1, borderColor: colors.border, borderRadius: borderRadius.md,
         paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
-        fontSize: 24, fontWeight: 'bold', color: colors.text,
-        marginBottom: spacing.md,
+        fontSize: 24, fontWeight: 'bold', color: colors.text, marginBottom: spacing.md,
     },
+
+    noCatBanner: {
+        backgroundColor: colors.warning + '20', borderRadius: borderRadius.md,
+        padding: spacing.md, marginBottom: spacing.md,
+        borderLeftWidth: 3, borderLeftColor: colors.warning,
+    },
+    noCatText: { fontSize: 13, color: colors.text, fontWeight: '600', marginBottom: 4 },
+    noCatHint: { fontSize: 12, color: colors.textSecondary, lineHeight: 18 },
+
     catScroll: { marginBottom: spacing.md },
     catChip: {
         flexDirection: 'row', alignItems: 'center', gap: spacing.xs,
-        borderWidth: 1, borderColor: colors.border, borderRadius: borderRadius.full,
+        borderWidth: 1, borderColor: colors.border, borderRadius: 20,
         paddingHorizontal: spacing.md, paddingVertical: spacing.xs, marginRight: spacing.sm,
         backgroundColor: colors.white,
     },
     catChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
     catIcon: { fontSize: 16 },
     catName: { ...(typography.bodySmall as object), color: colors.text },
+
+    extraToggleRow: {
+        flexDirection: 'row', alignItems: 'center',
+        backgroundColor: colors.gray100, borderRadius: borderRadius.md,
+        padding: spacing.md, marginBottom: spacing.md,
+    },
+    extraToggleLabel: { fontSize: 14, fontWeight: '600', color: colors.text },
+    extraToggleHint: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+
+    extraInfoBanner: {
+        backgroundColor: colors.primary + '15', borderRadius: borderRadius.md,
+        padding: spacing.md, marginBottom: spacing.md,
+        borderLeftWidth: 3, borderLeftColor: colors.primary,
+    },
+    extraInfoText: { fontSize: 13, color: colors.text, lineHeight: 18 },
+
     descInput: {
         borderWidth: 1, borderColor: colors.border, borderRadius: borderRadius.md,
         paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
-        ...(typography.body as object), color: colors.text,
-        marginBottom: spacing.lg,
+        ...(typography.body as object), color: colors.text, marginBottom: spacing.lg,
     },
-
+    datePickerBtn: {
+        borderWidth: 1, borderColor: colors.border, borderRadius: borderRadius.md,
+        paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+        backgroundColor: colors.gray100, marginBottom: spacing.md,
+    },
+    datePickerBtnText: {
+        ...(typography.body as object), color: colors.text, fontWeight: '600',
+    },
+    datePickerDoneBtn: {
+        alignItems: 'center', paddingVertical: 8,
+        borderTopWidth: 1, borderTopColor: colors.border,
+        backgroundColor: '#f9f9f9',
+    },
+    datePickerDoneText: {
+        ...(typography.bodySmall as object), color: colors.primary, fontWeight: '700',
+    },
     modalBtns: { flexDirection: 'row', gap: spacing.md },
     cancelBtn: {
         flex: 1, paddingVertical: spacing.md, borderRadius: borderRadius.md,

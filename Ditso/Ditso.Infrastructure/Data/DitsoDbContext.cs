@@ -89,6 +89,7 @@ entity.HasOne(e => e.User)
             entity.Property(e => e.Type).IsRequired().HasConversion<string>().HasMaxLength(50);
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.RowVersion).IsRowVersion();
+            entity.Property(e => e.IsExtraIncome).HasDefaultValue(false);
 
             entity.HasOne(e => e.User)
                 .WithMany(u => u.Transactions)
@@ -132,6 +133,8 @@ entity.HasOne(e => e.User)
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.LimitAmount).IsRequired().HasColumnType("decimal(18,2)");
+            entity.Property(e => e.IsIncome).HasDefaultValue(false);
+            entity.Property(e => e.IsSystemCategory).HasDefaultValue(false);
 
             entity.HasOne(e => e.Budget)
                 .WithMany(b => b.Items)
@@ -196,15 +199,19 @@ entity.HasOne(e => e.User)
 
     private void SeedCategories(ModelBuilder modelBuilder)
     {
+        // ── Seed dates must be fixed (no DateTime.UtcNow) to avoid migration drift ──
+        var seedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         modelBuilder.Entity<Category>().HasData(
-            new Category { Id = 1, UserId = null, Name = "Salario", Icon = "wallet", Type = Domain.Enums.TransactionType.Income, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Category { Id = 2, UserId = null, Name = "Extras", Icon = "gift", Type = Domain.Enums.TransactionType.Income, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Category { Id = 3, UserId = null, Name = "Comida", Icon = "restaurant", Type = Domain.Enums.TransactionType.Expense, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Category { Id = 4, UserId = null, Name = "Comida Rápida", Icon = "fast-food", Type = Domain.Enums.TransactionType.Expense, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Category { Id = 5, UserId = null, Name = "Transporte", Icon = "car", Type = Domain.Enums.TransactionType.Expense, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Category { Id = 6, UserId = null, Name = "Entretenimiento", Icon = "gamepad", Type = Domain.Enums.TransactionType.Expense, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Category { Id = 7, UserId = null, Name = "Servicios", Icon = "lightbulb", Type = Domain.Enums.TransactionType.Expense, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Category { Id = 8, UserId = null, Name = "Salud", Icon = "medical", Type = Domain.Enums.TransactionType.Expense, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+            new Category { Id = 1, UserId = null, Name = "Salario",            Icon = "wallet",      Type = Domain.Enums.TransactionType.Income,  CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Category { Id = 2, UserId = null, Name = "Extras",             Icon = "gift",        Type = Domain.Enums.TransactionType.Income,  CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Category { Id = 3, UserId = null, Name = "Comida",             Icon = "restaurant",  Type = Domain.Enums.TransactionType.Expense, CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Category { Id = 4, UserId = null, Name = "Comida Rápida",      Icon = "fast-food",   Type = Domain.Enums.TransactionType.Expense, CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Category { Id = 5, UserId = null, Name = "Transporte",         Icon = "car",         Type = Domain.Enums.TransactionType.Expense, CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Category { Id = 6, UserId = null, Name = "Entretenimiento",    Icon = "game-controller", Type = Domain.Enums.TransactionType.Expense, CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Category { Id = 7, UserId = null, Name = "Servicios",          Icon = "flash",       Type = Domain.Enums.TransactionType.Expense, CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Category { Id = 8, UserId = null, Name = "Salud",              Icon = "medical",     Type = Domain.Enums.TransactionType.Expense, CreatedAt = seedDate, UpdatedAt = seedDate },
+            // ── Categoría del sistema para ingresos adicionales ──────────────────
+            new Category { Id = 9, UserId = null, Name = "Ingresos Adicionales", Icon = "add-circle", Type = Domain.Enums.TransactionType.Income, CreatedAt = seedDate, UpdatedAt = seedDate }
         );
     }
 

@@ -1,0 +1,370 @@
+import React, { useState, useEffect } from 'react';
+import {
+    View, Text, StyleSheet, ScrollView, TouchableOpacity,
+    TextInput, Alert, ActivityIndicator, Platform,
+} from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { colors } from '../theme';
+import { budgetService } from '../services/budgetService';
+import { SuggestedDistributionItem } from '../types';
+
+type Period = 'Semanal' | 'Quincenal' | 'Mensual' | 'Personalizado';
+type Mode = 'quick' | 'detailed';
+
+const PERIODS: { label: string; value: Period }[] = [
+    { label: 'Semanal', value: 'Semanal' },
+    { label: 'Quincenal', value: 'Quincenal' },
+    { label: 'Mensual', value: 'Mensual' },
+    { label: 'Personalizado', value: 'Personalizado' },
+];
+
+interface Props {
+    onBudgetCreated: () => void;
+}
+
+export default function BudgetOnboardingScreen({ onBudgetCreated }: Props) {
+    const [mode, setMode] = useState<Mode>('quick');
+    const [period, setPeriod] = useState<Period>('Quincenal');
+    const [startDate, setStartDate] = useState(new Date());
+    const [endDate, setEndDate] = useState(new Date());
+    const [totalAmount, setTotalAmount] = useState('');
+    const [showStart, setShowStart] = useState(false);
+    const [showEnd, setShowEnd] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [loadingSugg, setLoadingSugg] = useState(false);
+
+    const [suggested, setSuggested] = useState<SuggestedDistributionItem[]>([]);
+    const [editedAmounts, setEditedAmounts] = useState<Record<number, string>>({});
+    const [detailedItems, setDetailedItems] = useState<
+        { categoryId: number; categoryName: string; categoryIcon: string; amount: string }[]
+    >([]);
+
+    const formatDateLabel = (d: Date) =>
+        d.toLocaleDateString('es-CR', { day: '2-digit', month: 'short', year: 'numeric' });
+
+    const calcEndDate = (start: Date, p: Period): Date => {
+        const d = new Date(start);
+        if (p === 'Semanal') { d.setDate(d.getDate() + 6); return d; }
+        if (p === 'Quincenal') { d.setDate(d.getDate() + 14); return d; }
+        if (p === 'Mensual') { d.setMonth(d.getMonth() + 1); d.setDate(d.getDate() - 1); return d; }
+        return endDate;
+    };
+
+    useEffect(() => {
+        if (period !== 'Personalizado') setEndDate(calcEndDate(startDate, period));
+    }, [startDate, period]);
+
+    const loadSuggested = async () => {
+        const amt = parseFloat(totalAmount);
+        if (!amt || amt <= 0) { Alert.alert('Monto inválido', 'Ingresa un monto mayor a cero.'); return; }
+        setLoadingSugg(true);
+        try {
+            const data = await budgetService.getSuggestedDistribution(amt);
+            setSuggested(data);
+            const init: Record<number, string> = {};
+            data.forEach((i, idx) => { init[idx] = String(i.suggestedAmount); });
+            setEditedAmounts(init);
+            setDetailedItems(data.map(i => ({
+                categoryId: i.categoryId,
+                categoryName: i.categoryName,
+                categoryIcon: i.categoryIcon,
+                amount: String(i.suggestedAmount),
+            })));
+        } catch {
+            Alert.alert('Error', 'No se pudo calcular la distribución.');
+        } finally {
+            setLoadingSugg(false);
+        }
+    };
+
+    const totalAssigned = detailedItems.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
+    const total = parseFloat(totalAmount) || 0;
+    const remaining = total - totalAssigned;
+    const remainingPct = total > 0 ? remaining / total : 1;
+    const remainingColor = remaining < 0 ? colors.error : remainingPct < 0.10 ? colors.warning : colors.success;
+
+    const buildItems = () => {
+        if (mode === 'quick') {
+            return suggested.map((s, idx) => ({
+                categoryId: s.categoryId,
+                limitAmount: parseFloat(editedAmounts[idx] || '0') || 0,
+                isIncome: false,
+            })).filter(i => i.categoryId > 0 && i.limitAmount > 0);
+        }
+        return detailedItems
+            .map(i => ({ categoryId: i.categoryId, limitAmount: parseFloat(i.amount) || 0, isIncome: false }))
+            .filter(i => i.categoryId > 0 && i.limitAmount > 0);
+    };
+
+    const handleCreate = async () => {
+        const amt = parseFloat(totalAmount);
+        if (!amt || amt <= 0) { Alert.alert('Monto inválido', 'Ingresa un monto total.'); return; }
+        const items = buildItems();
+        if (items.length === 0) { Alert.alert('Sin categorías', 'Agrega al menos una categoría con monto.'); return; }
+
+        setLoading(true);
+        try {
+            await budgetService.create({
+                period,
+                startDate: startDate.toISOString().split('T')[0],
+                customEndDate: period === 'Personalizado' ? endDate.toISOString().split('T')[0] : undefined,
+                totalAmount: amt,
+                items,
+            });
+            onBudgetCreated();
+        } catch (e: any) {
+            Alert.alert('Error', e?.response?.data?.message ?? 'No se pudo crear el presupuesto.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <View style={s.root}>
+            {/* Header */}
+            <View style={s.header}>
+                <Text style={s.headerEmoji}>🎯</Text>
+                <Text style={s.headerTitle}>Crea tu presupuesto</Text>
+                <Text style={s.headerSub}>
+                    Para comenzar, necesitas crear tu primer presupuesto. Esto permitirá calcular tu
+                    balance, darte recomendaciones y ayudarte a controlar tus finanzas.
+                </Text>
+            </View>
+
+            {/* Mode tabs */}
+            <View style={s.modeTabs}>
+                <TouchableOpacity
+                    style={[s.modeTab, mode === 'quick' && s.modeTabActive]}
+                    onPress={() => setMode('quick')}
+                >
+                    <Text style={[s.modeTabText, mode === 'quick' && s.modeTabTextActive]}>⚡ Rápido</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[s.modeTab, mode === 'detailed' && s.modeTabActive]}
+                    onPress={() => setMode('detailed')}
+                >
+                    <Text style={[s.modeTabText, mode === 'detailed' && s.modeTabTextActive]}>📋 Detallado</Text>
+                </TouchableOpacity>
+            </View>
+
+            <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
+
+                {/* Period selector */}
+                <Text style={s.label}>Tipo de ciclo</Text>
+                <View style={s.pillRow}>
+                    {PERIODS.map(p => (
+                        <TouchableOpacity
+                            key={p.value}
+                            style={[s.pill, period === p.value && s.pillActive]}
+                            onPress={() => setPeriod(p.value)}
+                        >
+                            <Text style={[s.pillText, period === p.value && s.pillTextActive]}>{p.label}</Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+
+                {/* Start date */}
+                <Text style={s.label}>Fecha de inicio</Text>
+                <TouchableOpacity style={s.dateBtn} onPress={() => setShowStart(true)}>
+                    <Text style={s.dateBtnText}>📅 {formatDateLabel(startDate)}</Text>
+                </TouchableOpacity>
+                {showStart && (
+                    <DateTimePicker
+                        value={startDate}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                        onChange={(_, d) => { setShowStart(false); if (d) setStartDate(d); }}
+                    />
+                )}
+
+                {/* End date — only for Personalizado */}
+                {period === 'Personalizado' ? (
+                    <>
+                        <Text style={s.label}>Fecha de fin</Text>
+                        <TouchableOpacity style={s.dateBtn} onPress={() => setShowEnd(true)}>
+                            <Text style={s.dateBtnText}>📅 {formatDateLabel(endDate)}</Text>
+                        </TouchableOpacity>
+                        {showEnd && (
+                            <DateTimePicker
+                                value={endDate}
+                                mode="date"
+                                minimumDate={startDate}
+                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                onChange={(_, d) => { setShowEnd(false); if (d) setEndDate(d); }}
+                            />
+                        )}
+                    </>
+                ) : (
+                    <Text style={s.endDateHint}>📌 Fin calculado: {formatDateLabel(endDate)}</Text>
+                )}
+
+                {/* Total amount */}
+                <Text style={s.label}>Monto total disponible</Text>
+                <TextInput
+                    style={s.input}
+                    keyboardType="numeric"
+                    placeholder="₡ 0"
+                    placeholderTextColor={colors.textSecondary}
+                    value={totalAmount}
+                    onChangeText={setTotalAmount}
+                />
+
+                {/* ── QUICK MODE ── */}
+                {mode === 'quick' && (
+                    <>
+                        <TouchableOpacity
+                            style={[s.calcBtn, loadingSugg && { opacity: 0.6 }]}
+                            onPress={loadSuggested}
+                            disabled={loadingSugg}
+                        >
+                            {loadingSugg
+                                ? <ActivityIndicator color="#fff" />
+                                : <Text style={s.calcBtnText}>✨ Calcular distribución sugerida</Text>
+                            }
+                        </TouchableOpacity>
+
+                        {suggested.length > 0 && (
+                            <>
+                                <Text style={s.sectionTitle}>Distribución sugerida (editable)</Text>
+                                {suggested.map((item, idx) => (
+                                    <View key={idx} style={s.categoryRow}>
+                                        <View style={s.categoryLeft}>
+                                            <Text style={s.categoryName}>{item.categoryName}</Text>
+                                            <Text style={s.categoryPct}>{item.percentage}%</Text>
+                                        </View>
+                                        <TextInput
+                                            style={s.categoryInput}
+                                            keyboardType="numeric"
+                                            value={editedAmounts[idx]}
+                                            onChangeText={v => setEditedAmounts(prev => ({ ...prev, [idx]: v }))}
+                                        />
+                                    </View>
+                                ))}
+                            </>
+                        )}
+                    </>
+                )}
+
+                {/* ── DETAILED MODE ── */}
+                {mode === 'detailed' && (
+                    <>
+                        {detailedItems.length === 0 && (
+                            <TouchableOpacity style={s.calcBtn} onPress={loadSuggested} disabled={loadingSugg}>
+                                {loadingSugg
+                                    ? <ActivityIndicator color="#fff" />
+                                    : <Text style={s.calcBtnText}>📂 Cargar categorías</Text>
+                                }
+                            </TouchableOpacity>
+                        )}
+
+                        {detailedItems.length > 0 && (
+                            <>
+                                <Text style={s.sectionTitle}>Asignación por categoría</Text>
+                                {detailedItems.map((item, idx) => (
+                                    <View key={idx} style={s.categoryRow}>
+                                        <Text style={s.categoryName}>{item.categoryName}</Text>
+                                        <TextInput
+                                            style={s.categoryInput}
+                                            keyboardType="numeric"
+                                            placeholder="₡ 0"
+                                            placeholderTextColor={colors.textSecondary}
+                                            value={item.amount}
+                                            onChangeText={v => setDetailedItems(prev =>
+                                                prev.map((d, i) => i === idx ? { ...d, amount: v } : d)
+                                            )}
+                                        />
+                                    </View>
+                                ))}
+
+                                {/* Running total indicator */}
+                                <View style={[s.totalIndicator, { borderColor: remainingColor }]}>
+                                    <Text style={s.totalIndicatorLabel}>Total asignado</Text>
+                                    <Text style={[s.totalIndicatorValue, { color: colors.text }]}>
+                                        ₡{totalAssigned.toLocaleString('es-CR')}
+                                    </Text>
+                                    <Text style={s.totalIndicatorLabel}>Restante</Text>
+                                    <Text style={[s.totalIndicatorValue, { color: remainingColor, fontSize: 20 }]}>
+                                        ₡{remaining.toLocaleString('es-CR')}
+                                    </Text>
+                                </View>
+
+                                {remaining < 0 && (
+                                    <View style={s.warningBanner}>
+                                        <Text style={s.warningText}>
+                                            ⚠️ La suma de tus categorías excede tu presupuesto disponible.
+                                            Puedes ajustar las categorías o continuar.
+                                        </Text>
+                                    </View>
+                                )}
+                            </>
+                        )}
+                    </>
+                )}
+
+                {/* Create button */}
+                <TouchableOpacity
+                    style={[s.createBtn, loading && { opacity: 0.7 }]}
+                    onPress={handleCreate}
+                    disabled={loading}
+                >
+                    {loading
+                        ? <ActivityIndicator color="#fff" />
+                        : <Text style={s.createBtnText}>Crear presupuesto 🚀</Text>
+                    }
+                </TouchableOpacity>
+
+                <View style={{ height: 40 }} />
+            </ScrollView>
+        </View>
+    );
+}
+
+const s = StyleSheet.create({
+    root: { flex: 1, backgroundColor: colors.background },
+    header: { backgroundColor: colors.primary, padding: 24, paddingTop: 56, alignItems: 'center' },
+    headerEmoji: { fontSize: 40, marginBottom: 8 },
+    headerTitle: { fontSize: 22, fontWeight: '700', color: '#fff', marginBottom: 8, textAlign: 'center' },
+    headerSub: { fontSize: 14, color: 'rgba(255,255,255,0.85)', textAlign: 'center', lineHeight: 20 },
+
+    modeTabs: { flexDirection: 'row', backgroundColor: colors.surface, borderBottomWidth: 1, borderColor: colors.border },
+    modeTab: { flex: 1, paddingVertical: 14, alignItems: 'center' },
+    modeTabActive: { borderBottomWidth: 3, borderColor: colors.primary },
+    modeTabText: { fontSize: 14, color: colors.textSecondary, fontWeight: '600' },
+    modeTabTextActive: { color: colors.primary },
+
+    scroll: { flex: 1 },
+    scrollContent: { padding: 20 },
+
+    label: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, marginBottom: 8, marginTop: 16, textTransform: 'uppercase', letterSpacing: 0.5 },
+    pillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    pill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.surface },
+    pillActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+    pillText: { fontSize: 13, color: colors.textSecondary, fontWeight: '600' },
+    pillTextActive: { color: '#fff' },
+
+    dateBtn: { backgroundColor: colors.surface, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: colors.border },
+    dateBtnText: { fontSize: 15, color: colors.text },
+    endDateHint: { fontSize: 13, color: colors.textSecondary, marginTop: 6, fontStyle: 'italic' },
+
+    input: { backgroundColor: colors.surface, borderRadius: 12, padding: 14, fontSize: 16, color: colors.text, borderWidth: 1, borderColor: colors.border, marginTop: 2 },
+
+    calcBtn: { backgroundColor: colors.primary, borderRadius: 12, padding: 14, alignItems: 'center', marginTop: 20 },
+    calcBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+
+    sectionTitle: { fontSize: 14, fontWeight: '700', color: colors.text, marginTop: 20, marginBottom: 10 },
+    categoryRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: 12, padding: 12, marginBottom: 8, gap: 12, borderWidth: 1, borderColor: colors.border },
+    categoryLeft: { flex: 1 },
+    categoryName: { flex: 1, fontSize: 14, color: colors.text, fontWeight: '500' },
+    categoryPct: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+    categoryInput: { width: 110, backgroundColor: colors.background, borderRadius: 8, padding: 8, fontSize: 14, color: colors.text, borderWidth: 1, borderColor: colors.border, textAlign: 'right' },
+
+    totalIndicator: { borderWidth: 2, borderRadius: 16, padding: 16, marginTop: 16, alignItems: 'center', gap: 4 },
+    totalIndicatorLabel: { fontSize: 12, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 },
+    totalIndicatorValue: { fontSize: 18, fontWeight: '700' },
+
+    warningBanner: { backgroundColor: '#FFF3CD', borderRadius: 12, padding: 14, marginTop: 12, borderLeftWidth: 4, borderLeftColor: colors.warning },
+    warningText: { fontSize: 13, color: '#856404', lineHeight: 20 },
+
+    createBtn: { backgroundColor: colors.success, borderRadius: 16, padding: 18, alignItems: 'center', marginTop: 24 },
+    createBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+});

@@ -19,8 +19,10 @@ import { Budget, Category } from '../types';
 import { ProgressBar } from '../components/ProgressBar';
 import { colors, spacing, typography, shadows, borderRadius } from '../theme';
 import { iconToEmoji } from '../utils/iconUtils';
+import { useNavigation } from '@react-navigation/native';
 
 export default function BudgetScreen() {
+    const navigation = useNavigation<any>();
     const [budget, setBudget] = useState<Budget | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -28,7 +30,7 @@ export default function BudgetScreen() {
 
     // Crear presupuesto
     const [creating, setCreating] = useState<boolean>(false);
-    const [period, setPeriod] = useState<'Quincenal' | 'Mensual'>('Quincenal');
+    const [period, setPeriod] = useState<'Semanal' | 'Quincenal' | 'Mensual' | 'Personalizado'>('Quincenal');
     const [limits, setLimits] = useState<Record<number, string>>({});
     const [submitting, setSubmitting] = useState<boolean>(false);
 
@@ -113,29 +115,20 @@ export default function BudgetScreen() {
     const handleCreate = async () => {
         const items = categories
             .filter(c => limits[c.id] != null && parseFloat(limits[c.id]) > 0)
-            .map(c => ({ categoryId: c.id, limitAmount: parseFloat(limits[c.id]) }));
+            .map(c => ({ categoryId: c.id, limitAmount: parseFloat(limits[c.id]), isIncome: false }));
 
         if (items.length === 0) {
             Alert.alert('Error', 'Asigna un límite a al menos una categoría.');
             return;
         }
 
+        const totalAmount = items.reduce((s, i) => s + i.limitAmount, 0);
         const today = new Date();
         const startDate = today.toISOString().slice(0, 10);
-        let endDate: string;
-        if (period === 'Quincenal') {
-            const end = new Date(today);
-            end.setDate(today.getDate() + 14);
-            endDate = end.toISOString().slice(0, 10);
-        } else {
-            const end = new Date(today);
-            end.setMonth(today.getMonth() + 1);
-            endDate = end.toISOString().slice(0, 10);
-        }
 
         setSubmitting(true);
         try {
-            const newBudget = await budgetService.create({ period, startDate, items });
+            const newBudget = await budgetService.create({ period, startDate, totalAmount, items });
             setBudget(newBudget);
             setCreating(false);
             setLimits({});
@@ -187,8 +180,16 @@ export default function BudgetScreen() {
                                             {budget.startDate.slice(0, 10)} → {budget.endDate.slice(0, 10)}
                                         </Text>
                                     </View>
-                                    <View style={[styles.activeBadge]}>
-                                        <Text style={styles.activeBadgeText}>● Activo</Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                                        <TouchableOpacity
+                                            style={styles.editBtn}
+                                            onPress={() => navigation.navigate('BudgetEdit', { budgetId: budget.id })}
+                                        >
+                                            <Text style={styles.editBtnText}>✏️ Editar</Text>
+                                        </TouchableOpacity>
+                                        <View style={[styles.activeBadge]}>
+                                            <Text style={styles.activeBadgeText}>● Activo</Text>
+                                        </View>
                                     </View>
                                 </View>
 
@@ -212,27 +213,60 @@ export default function BudgetScreen() {
                                 })()}
                             </View>
 
-                            {/* Detalle por categoría */}
-                            <Text style={styles.sectionLabel}>Por categoría</Text>
-                            {budget.items.map(item => (
-                                <View key={item.id} style={styles.itemCard}>
-                                    <View style={styles.itemHeader}>
-                                        <Text style={styles.itemIcon}>{iconToEmoji(item.categoryIcon)}</Text>
-                                        <Text style={styles.itemName}>{item.categoryName}</Text>
-                                        <Text style={[
-                                            styles.itemPct,
-                                            { color: item.percentageUsed >= 90 ? colors.error : item.percentageUsed >= 70 ? colors.warning : colors.success }
-                                        ]}>
-                                            {Math.round(item.percentageUsed)}%
+                            {/* ── Gastos por categoría ── */}
+                            {budget.items.some(i => !i.isIncome) && (
+                                <Text style={styles.sectionLabel}>Gastos por categoría</Text>
+                            )}
+                            {budget.items
+                                .filter(i => !i.isIncome)
+                                .map(item => (
+                                    <View key={item.id} style={styles.itemCard}>
+                                        <View style={styles.itemHeader}>
+                                            <Text style={styles.itemIcon}>{iconToEmoji(item.categoryIcon)}</Text>
+                                            <Text style={styles.itemName}>{item.categoryName}</Text>
+                                            <Text style={[
+                                                styles.itemPct,
+                                                { color: item.percentageUsed >= 90 ? colors.error : item.percentageUsed >= 70 ? colors.warning : colors.success }
+                                            ]}>
+                                                {Math.round(item.percentageUsed)}% usado
+                                            </Text>
+                                        </View>
+                                        <ProgressBar percentage={item.percentageUsed} />
+                                        <View style={styles.itemAmounts}>
+                                            <Text style={styles.itemSpent}>{formatCRC(item.spentAmount)} gastado</Text>
+                                            <Text style={styles.itemLimit}>
+                                                límite: {formatCRC(item.limitAmount)}
+                                                {item.percentage > 0 ? ` (${item.percentage.toFixed(1)}%)` : ''}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                ))
+                            }
+
+                            {/* ── Ingresos por categoría ── */}
+                            {budget.items.some(i => i.isIncome) && (
+                                <Text style={[styles.sectionLabel, { marginTop: spacing.md }]}>Ingresos</Text>
+                            )}
+                            {budget.items
+                                .filter(i => i.isIncome)
+                                .map(item => (
+                                    <View key={item.id} style={[styles.itemCard, styles.incomeItemCard]}>
+                                        <View style={styles.itemHeader}>
+                                            <Text style={styles.itemIcon}>{iconToEmoji(item.categoryIcon)}</Text>
+                                            <Text style={styles.itemName}>{item.categoryName}</Text>
+                                            <View style={styles.incomeChip}>
+                                                <Text style={styles.incomeChipText}>Ingreso</Text>
+                                            </View>
+                                        </View>
+                                        <Text style={styles.incomeReceived}>
+                                            {formatCRC(item.receivedAmount)} recibido
                                         </Text>
                                     </View>
-                                    <ProgressBar percentage={item.percentageUsed} />
-                                    <View style={styles.itemAmounts}>
-                                        <Text style={styles.itemSpent}>{formatCRC(item.spentAmount)} gastado</Text>
-                                        <Text style={styles.itemLimit}>límite: {formatCRC(item.limitAmount)}</Text>
-                                    </View>
-                                </View>
-                            ))}
+                                ))
+                            }
+
+
+
 
                             <TouchableOpacity style={styles.deactivateBtn} onPress={handleDeactivate}>
                                 <Text style={styles.deactivateText}>Cerrar período actual</Text>
@@ -253,7 +287,7 @@ export default function BudgetScreen() {
                                 {/* Período */}
                                 <Text style={styles.fieldLabel}>Período</Text>
                                 <View style={styles.periodRow}>
-                                    {(['Quincenal', 'Mensual'] as const).map(p => (
+                                    {(['Semanal', 'Quincenal', 'Mensual'] as const).map(p => (
                                         <TouchableOpacity
                                             key={p}
                                             style={[styles.periodBtn, period === p ? styles.periodBtnActive : null]}
@@ -459,6 +493,36 @@ const styles = StyleSheet.create({
         marginTop: spacing.sm,
     },
     deactivateText: { ...(typography.bodySmall as object), color: colors.error, fontWeight: '600' },
+
+    editBtn: {
+        backgroundColor: colors.primary + '18',
+        borderRadius: borderRadius.md,
+        borderWidth: 1,
+        borderColor: colors.primary + '50',
+        paddingHorizontal: spacing.sm,
+        paddingVertical: 5,
+    },
+    editBtnText: { ...(typography.caption as object), color: colors.primary, fontWeight: '700' },
+
+    // ── Income item styles ───────────────────────────────────────────────────
+    incomeItemCard: {
+        borderLeftWidth: 3,
+        borderLeftColor: colors.income,
+    },
+    incomeChip: {
+        backgroundColor: colors.income + '20',
+        borderRadius: borderRadius.sm,
+        paddingHorizontal: spacing.xs,
+        paddingVertical: 2,
+    },
+    incomeChipText: {
+        fontSize: 11, color: colors.income, fontWeight: '700',
+    },
+    incomeReceived: {
+        ...(typography.h3 as object),
+        color: colors.income,
+        marginTop: spacing.xs,
+    },
 
     createTitle: { ...(typography.h3 as object), color: colors.text, marginBottom: spacing.xs },
     createSubtitle: { ...(typography.bodySmall as object), color: colors.textSecondary, marginBottom: spacing.lg },

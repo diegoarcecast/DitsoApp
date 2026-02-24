@@ -4,6 +4,7 @@ using Ditso.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ditso.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(DitsoDbContext))]
-    partial class DitsoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260224014248_AddBudgetTotalAmount")]
+    partial class AddBudgetTotalAmount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -41,9 +44,6 @@ namespace Ditso.Infrastructure.Data.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Period")
                         .IsRequired()
@@ -83,16 +83,6 @@ namespace Ditso.Infrastructure.Data.Migrations
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
-
-                    b.Property<bool>("IsIncome")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool>("IsSystemCategory")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
 
                     b.Property<decimal>("LimitAmount")
                         .HasColumnType("decimal(18,2)");
@@ -151,92 +141,82 @@ namespace Ditso.Infrastructure.Data.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedAt = new DateTime(2026, 2, 24, 1, 42, 47, 750, DateTimeKind.Utc).AddTicks(6729),
                             Icon = "wallet",
                             IsDeleted = false,
                             Name = "Salario",
                             Type = "Income",
-                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 2, 24, 1, 42, 47, 750, DateTimeKind.Utc).AddTicks(6853)
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedAt = new DateTime(2026, 2, 24, 1, 42, 47, 750, DateTimeKind.Utc).AddTicks(6971),
                             Icon = "gift",
                             IsDeleted = false,
                             Name = "Extras",
                             Type = "Income",
-                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 2, 24, 1, 42, 47, 750, DateTimeKind.Utc).AddTicks(6971)
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedAt = new DateTime(2026, 2, 24, 1, 42, 47, 750, DateTimeKind.Utc).AddTicks(6973),
                             Icon = "restaurant",
                             IsDeleted = false,
                             Name = "Comida",
                             Type = "Expense",
-                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 2, 24, 1, 42, 47, 750, DateTimeKind.Utc).AddTicks(6974)
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedAt = new DateTime(2026, 2, 24, 1, 42, 47, 750, DateTimeKind.Utc).AddTicks(6975),
                             Icon = "fast-food",
                             IsDeleted = false,
                             Name = "Comida Rápida",
                             Type = "Expense",
-                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 2, 24, 1, 42, 47, 750, DateTimeKind.Utc).AddTicks(6976)
                         },
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedAt = new DateTime(2026, 2, 24, 1, 42, 47, 750, DateTimeKind.Utc).AddTicks(6977),
                             Icon = "car",
                             IsDeleted = false,
                             Name = "Transporte",
                             Type = "Expense",
-                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 2, 24, 1, 42, 47, 750, DateTimeKind.Utc).AddTicks(6978)
                         },
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Icon = "game-controller",
+                            CreatedAt = new DateTime(2026, 2, 24, 1, 42, 47, 750, DateTimeKind.Utc).AddTicks(6979),
+                            Icon = "gamepad",
                             IsDeleted = false,
                             Name = "Entretenimiento",
                             Type = "Expense",
-                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 2, 24, 1, 42, 47, 750, DateTimeKind.Utc).AddTicks(6980)
                         },
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Icon = "flash",
+                            CreatedAt = new DateTime(2026, 2, 24, 1, 42, 47, 750, DateTimeKind.Utc).AddTicks(6982),
+                            Icon = "lightbulb",
                             IsDeleted = false,
                             Name = "Servicios",
                             Type = "Expense",
-                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 2, 24, 1, 42, 47, 750, DateTimeKind.Utc).AddTicks(6982)
                         },
                         new
                         {
                             Id = 8,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedAt = new DateTime(2026, 2, 24, 1, 42, 47, 750, DateTimeKind.Utc).AddTicks(6984),
                             Icon = "medical",
                             IsDeleted = false,
                             Name = "Salud",
                             Type = "Expense",
-                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
-                        },
-                        new
-                        {
-                            Id = 9,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Icon = "add-circle",
-                            IsDeleted = false,
-                            Name = "Ingresos Adicionales",
-                            Type = "Income",
-                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            UpdatedAt = new DateTime(2026, 2, 24, 1, 42, 47, 750, DateTimeKind.Utc).AddTicks(6984)
                         });
                 });
 
@@ -449,11 +429,6 @@ namespace Ditso.Infrastructure.Data.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
-
-                    b.Property<bool>("IsExtraIncome")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
