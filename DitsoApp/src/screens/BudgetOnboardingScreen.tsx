@@ -7,6 +7,7 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import { colors } from '../theme';
 import { budgetService } from '../services/budgetService';
 import { categoryService } from '../services/categoryService';
+import { iconToEmoji } from '../utils/iconUtils';
 import { SuggestedDistributionItem } from '../types';
 
 type Period = 'Semanal' | 'Quincenal' | 'Mensual' | 'Personalizado';
@@ -311,6 +312,7 @@ export default function BudgetOnboardingScreen({ onBudgetCreated }: Props) {
                                 <Text style={s.sectionTitle}>Distribución sugerida (editable)</Text>
                                 {suggested.map((item, idx) => (
                                     <View key={idx} style={s.categoryRow}>
+                                        <Text style={s.categoryEmoji}>{iconToEmoji(item.categoryIcon)}</Text>
                                         <View style={s.categoryLeft}>
                                             <Text style={s.categoryName}>{item.categoryName}</Text>
                                             <Text style={s.categoryPct}>{item.percentage}%</Text>
@@ -353,7 +355,7 @@ export default function BudgetOnboardingScreen({ onBudgetCreated }: Props) {
                                         : '0.0';
                                     return (
                                         <View key={idx} style={s.categoryRow}>
-                                            <Text style={s.categoryEmoji}>{item.categoryIcon}</Text>
+                                            <Text style={s.categoryEmoji}>{iconToEmoji(item.categoryIcon)}</Text>
                                             <View style={s.categoryLeft}>
                                                 <Text style={s.categoryName}>{item.categoryName}</Text>
                                                 <Text style={s.categoryPct}>{pct}%</Text>
