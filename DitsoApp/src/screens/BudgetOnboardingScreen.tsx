@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
     View, Text, StyleSheet, ScrollView, TouchableOpacity,
-    TextInput, Alert, ActivityIndicator, Platform,
+    TextInput, Alert, ActivityIndicator, Platform, KeyboardAvoidingView,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { colors } from '../theme';
 import { budgetService } from '../services/budgetService';
 import { SuggestedDistributionItem } from '../types';
@@ -120,7 +120,10 @@ export default function BudgetOnboardingScreen({ onBudgetCreated }: Props) {
     };
 
     return (
-        <View style={s.root}>
+        <KeyboardAvoidingView
+            style={s.root}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
             {/* Header */}
             <View style={s.header}>
                 <Text style={s.headerEmoji}>🎯</Text>
@@ -147,7 +150,11 @@ export default function BudgetOnboardingScreen({ onBudgetCreated }: Props) {
                 </TouchableOpacity>
             </View>
 
-            <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
+            <ScrollView
+                style={s.scroll}
+                contentContainerStyle={s.scrollContent}
+                keyboardShouldPersistTaps="handled"
+            >
 
                 {/* Period selector */}
                 <Text style={s.label}>Tipo de ciclo</Text>
@@ -165,33 +172,65 @@ export default function BudgetOnboardingScreen({ onBudgetCreated }: Props) {
 
                 {/* Start date */}
                 <Text style={s.label}>Fecha de inicio</Text>
-                <TouchableOpacity style={s.dateBtn} onPress={() => setShowStart(true)}>
+                <TouchableOpacity style={s.dateBtn} onPress={() => setShowStart(v => !v)}>
                     <Text style={s.dateBtnText}>📅 {formatDateLabel(startDate)}</Text>
                 </TouchableOpacity>
                 {showStart && (
-                    <DateTimePicker
-                        value={startDate}
-                        mode="date"
-                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                        onChange={(_, d) => { setShowStart(false); if (d) setStartDate(d); }}
-                    />
+                    <View style={s.datePickerContainer}>
+                        <DateTimePicker
+                            value={startDate}
+                            mode="date"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                            themeVariant="light"
+                            onChange={(event: DateTimePickerEvent, d?: Date) => {
+                                if (Platform.OS === 'android') {
+                                    setShowStart(false);
+                                    if (event.type === 'set' && d) setStartDate(d);
+                                } else {
+                                    if (d) setStartDate(d);
+                                }
+                            }}
+                            style={Platform.OS === 'ios' ? { height: 120 } : undefined}
+                        />
+                        {Platform.OS === 'ios' && (
+                            <TouchableOpacity style={s.dateDoneBtn} onPress={() => setShowStart(false)}>
+                                <Text style={s.dateDoneText}>Listo ✓</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
                 )}
 
                 {/* End date — only for Personalizado */}
                 {period === 'Personalizado' ? (
                     <>
                         <Text style={s.label}>Fecha de fin</Text>
-                        <TouchableOpacity style={s.dateBtn} onPress={() => setShowEnd(true)}>
+                        <TouchableOpacity style={s.dateBtn} onPress={() => setShowEnd(v => !v)}>
                             <Text style={s.dateBtnText}>📅 {formatDateLabel(endDate)}</Text>
                         </TouchableOpacity>
                         {showEnd && (
-                            <DateTimePicker
-                                value={endDate}
-                                mode="date"
-                                minimumDate={startDate}
-                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                onChange={(_, d) => { setShowEnd(false); if (d) setEndDate(d); }}
-                            />
+                            <View style={s.datePickerContainer}>
+                                <DateTimePicker
+                                    value={endDate}
+                                    mode="date"
+                                    minimumDate={startDate}
+                                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                    themeVariant="light"
+                                    onChange={(event: DateTimePickerEvent, d?: Date) => {
+                                        if (Platform.OS === 'android') {
+                                            setShowEnd(false);
+                                            if (event.type === 'set' && d) setEndDate(d);
+                                        } else {
+                                            if (d) setEndDate(d);
+                                        }
+                                    }}
+                                    style={Platform.OS === 'ios' ? { height: 120 } : undefined}
+                                />
+                                {Platform.OS === 'ios' && (
+                                    <TouchableOpacity style={s.dateDoneBtn} onPress={() => setShowEnd(false)}>
+                                        <Text style={s.dateDoneText}>Listo ✓</Text>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
                         )}
                     </>
                 ) : (
@@ -315,7 +354,7 @@ export default function BudgetOnboardingScreen({ onBudgetCreated }: Props) {
 
                 <View style={{ height: 40 }} />
             </ScrollView>
-        </View>
+        </KeyboardAvoidingView>
     );
 }
 
@@ -365,6 +404,27 @@ const s = StyleSheet.create({
     warningBanner: { backgroundColor: '#FFF3CD', borderRadius: 12, padding: 14, marginTop: 12, borderLeftWidth: 4, borderLeftColor: colors.warning },
     warningText: { fontSize: 13, color: '#856404', lineHeight: 20 },
 
+    datePickerContainer: {
+        backgroundColor: '#ffffff',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: colors.border,
+        marginTop: 4,
+        marginBottom: 4,
+        overflow: 'hidden',
+    },
+    dateDoneBtn: {
+        alignItems: 'center',
+        paddingVertical: 8,
+        borderTopWidth: 1,
+        borderTopColor: colors.border,
+        backgroundColor: '#f9f9f9',
+    },
+    dateDoneText: {
+        fontSize: 14,
+        color: colors.primary,
+        fontWeight: '700',
+    },
     createBtn: { backgroundColor: colors.success, borderRadius: 16, padding: 18, alignItems: 'center', marginTop: 24 },
     createBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
 });

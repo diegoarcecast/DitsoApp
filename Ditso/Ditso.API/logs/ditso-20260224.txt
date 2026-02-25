@@ -9510,3 +9510,451 @@ WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__userId_0 AND [t].[I
 2026-02-24 19:03:13.505 -06:00 [INF] HTTP GET /api/financial-health responded 200 in 42.1811 ms
 2026-02-24 19:03:13.507 -06:00 [INF] Request finished HTTP/1.1 GET http://192.168.0.164:5200/api/financial-health?startDate=2026-02-16&endDate=2026-02-28 - 200 null application/json; charset=utf-8 46.9271ms
 2026-02-24 19:06:51.457 -06:00 [INF] Application is shutting down...
+2026-02-24 19:10:34.487 -06:00 [INF] User profile is available. Using 'C:\Users\diego\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-02-24 19:10:34.571 -06:00 [INF] Now listening on: http://0.0.0.0:5200
+2026-02-24 19:10:34.573 -06:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-02-24 19:10:34.575 -06:00 [INF] Hosting environment: Development
+2026-02-24 19:10:34.576 -06:00 [INF] Content root path: C:\Users\diego\OneDrive\Documents\ProyectoUniversidad\Ditso\Ditso.API
+2026-02-24 19:10:58.040 -06:00 [INF] Request starting HTTP/1.1 POST http://192.168.0.164:5200/api/auth/login - application/json 48
+2026-02-24 19:10:58.111 -06:00 [INF] Executing endpoint 'Ditso.API.Controllers.AuthController.Login (Ditso.API)'
+2026-02-24 19:10:58.122 -06:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Ditso.Application.DTOs.Auth.LoginResponseDto]] Login(Ditso.Application.DTOs.Auth.LoginRequestDto) on controller Ditso.API.Controllers.AuthController (Ditso.API).
+2026-02-24 19:10:58.513 -06:00 [WRN] Entity 'Budget' has a global query filter defined and is the required end of a relationship with the entity 'BudgetItem'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-02-24 19:10:58.515 -06:00 [WRN] Entity 'User' has a global query filter defined and is the required end of a relationship with the entity 'RefreshToken'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-02-24 19:10:58.586 -06:00 [WRN] No store type was specified for the decimal property 'TotalAmount' on entity type 'Budget'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2026-02-24 19:10:58.998 -06:00 [INF] Executed DbCommand (29ms) [Parameters=[@__request_Email_0='?' (Size = 255)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[CreatedAt], [u].[Email], [u].[FullName], [u].[IsActive], [u].[IsDeleted], [u].[PasswordHash], [u].[Role], [u].[UpdatedAt]
+FROM [Users] AS [u]
+WHERE [u].[IsDeleted] = CAST(0 AS bit) AND [u].[Email] = @__request_Email_0
+2026-02-24 19:10:59.389 -06:00 [INF] Executed DbCommand (5ms) [Parameters=[@p0='?' (DbType = DateTime2), @p1='?' (DbType = DateTime2), @p2='?' (DbType = Boolean), @p3='?' (Size = 512), @p4='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [RefreshTokens] ([CreatedAt], [ExpiresAt], [IsRevoked], [Token], [UserId])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3, @p4);
+2026-02-24 19:10:59.404 -06:00 [INF] Usuario test@test.com inició sesión exitosamente
+2026-02-24 19:10:59.408 -06:00 [INF] Executing OkObjectResult, writing value of type 'Ditso.Application.DTOs.Auth.LoginResponseDto'.
+2026-02-24 19:10:59.418 -06:00 [INF] Executed action Ditso.API.Controllers.AuthController.Login (Ditso.API) in 1292.0106ms
+2026-02-24 19:10:59.421 -06:00 [INF] Executed endpoint 'Ditso.API.Controllers.AuthController.Login (Ditso.API)'
+2026-02-24 19:10:59.423 -06:00 [INF] HTTP POST /api/auth/login responded 200 in 1360.4234 ms
+2026-02-24 19:10:59.432 -06:00 [INF] Request finished HTTP/1.1 POST http://192.168.0.164:5200/api/auth/login - 200 null application/json; charset=utf-8 1392.9372ms
+2026-02-24 19:10:59.532 -06:00 [INF] Request starting HTTP/1.1 GET http://192.168.0.164:5200/api/budgets/active - null null
+2026-02-24 19:10:59.542 -06:00 [INF] Executing endpoint 'Ditso.API.Controllers.BudgetsController.GetActive (Ditso.API)'
+2026-02-24 19:10:59.546 -06:00 [INF] Route matched with {action = "GetActive", controller = "Budgets"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Ditso.Application.DTOs.Budgets.BudgetDto]] GetActive() on controller Ditso.API.Controllers.BudgetsController (Ditso.API).
+2026-02-24 19:10:59.652 -06:00 [INF] Executed DbCommand (7ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [b1].[Id], [b1].[CreatedAt], [b1].[EndDate], [b1].[IsActive], [b1].[IsDeleted], [b1].[Name], [b1].[Period], [b1].[StartDate], [b1].[TotalAmount], [b1].[UpdatedAt], [b1].[UserId], [s].[Id], [s].[BudgetId], [s].[CategoryId], [s].[IsIncome], [s].[IsSystemCategory], [s].[LimitAmount], [s].[Id0], [s].[CreatedAt], [s].[Icon], [s].[IsDeleted], [s].[Name], [s].[Type], [s].[UpdatedAt], [s].[UserId]
+FROM (
+    SELECT TOP(1) [b].[Id], [b].[CreatedAt], [b].[EndDate], [b].[IsActive], [b].[IsDeleted], [b].[Name], [b].[Period], [b].[StartDate], [b].[TotalAmount], [b].[UpdatedAt], [b].[UserId]
+    FROM [Budgets] AS [b]
+    WHERE [b].[IsDeleted] = CAST(0 AS bit) AND [b].[UserId] = @__userId_0 AND [b].[IsActive] = CAST(1 AS bit)
+) AS [b1]
+LEFT JOIN (
+    SELECT [b0].[Id], [b0].[BudgetId], [b0].[CategoryId], [b0].[IsIncome], [b0].[IsSystemCategory], [b0].[LimitAmount], [c0].[Id] AS [Id0], [c0].[CreatedAt], [c0].[Icon], [c0].[IsDeleted], [c0].[Name], [c0].[Type], [c0].[UpdatedAt], [c0].[UserId]
+    FROM [BudgetItems] AS [b0]
+    INNER JOIN (
+        SELECT [c].[Id], [c].[CreatedAt], [c].[Icon], [c].[IsDeleted], [c].[Name], [c].[Type], [c].[UpdatedAt], [c].[UserId]
+        FROM [Categories] AS [c]
+        WHERE [c].[IsDeleted] = CAST(0 AS bit)
+    ) AS [c0] ON [b0].[CategoryId] = [c0].[Id]
+) AS [s] ON [b1].[Id] = [s].[BudgetId]
+ORDER BY [b1].[Id], [s].[Id]
+2026-02-24 19:10:59.717 -06:00 [INF] Executed DbCommand (5ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:10:59.723 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:10:59.726 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:10:59.728 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:10:59.731 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:10:59.739 -06:00 [INF] Executed DbCommand (4ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Income' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:10:59.747 -06:00 [INF] Executed DbCommand (4ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Income' AND [t].[IsExtraIncome] = CAST(1 AS bit) AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:10:59.749 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:10:59.754 -06:00 [INF] Executing OkObjectResult, writing value of type 'Ditso.Application.DTOs.Budgets.BudgetDto'.
+2026-02-24 19:10:59.766 -06:00 [INF] Executed action Ditso.API.Controllers.BudgetsController.GetActive (Ditso.API) in 218.111ms
+2026-02-24 19:10:59.768 -06:00 [INF] Executed endpoint 'Ditso.API.Controllers.BudgetsController.GetActive (Ditso.API)'
+2026-02-24 19:10:59.769 -06:00 [INF] HTTP GET /api/budgets/active responded 200 in 230.2914 ms
+2026-02-24 19:10:59.770 -06:00 [INF] Request finished HTTP/1.1 GET http://192.168.0.164:5200/api/budgets/active - 200 null application/json; charset=utf-8 238.2952ms
+2026-02-24 19:10:59.848 -06:00 [INF] Request starting HTTP/1.1 GET http://192.168.0.164:5200/api/transactions? - null null
+2026-02-24 19:10:59.853 -06:00 [INF] Request starting HTTP/1.1 GET http://192.168.0.164:5200/api/budgets/active - null null
+2026-02-24 19:10:59.854 -06:00 [INF] Executing endpoint 'Ditso.API.Controllers.TransactionsController.GetAll (Ditso.API)'
+2026-02-24 19:10:59.856 -06:00 [INF] Executing endpoint 'Ditso.API.Controllers.BudgetsController.GetActive (Ditso.API)'
+2026-02-24 19:10:59.857 -06:00 [INF] Route matched with {action = "GetActive", controller = "Budgets"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Ditso.Application.DTOs.Budgets.BudgetDto]] GetActive() on controller Ditso.API.Controllers.BudgetsController (Ditso.API).
+2026-02-24 19:10:59.858 -06:00 [INF] Route matched with {action = "GetAll", controller = "Transactions"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[System.Collections.Generic.IEnumerable`1[Ditso.Application.DTOs.Transactions.TransactionDto]]] GetAll(System.Nullable`1[System.DateTime], System.Nullable`1[System.DateTime]) on controller Ditso.API.Controllers.TransactionsController (Ditso.API).
+2026-02-24 19:10:59.868 -06:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [b1].[Id], [b1].[CreatedAt], [b1].[EndDate], [b1].[IsActive], [b1].[IsDeleted], [b1].[Name], [b1].[Period], [b1].[StartDate], [b1].[TotalAmount], [b1].[UpdatedAt], [b1].[UserId], [s].[Id], [s].[BudgetId], [s].[CategoryId], [s].[IsIncome], [s].[IsSystemCategory], [s].[LimitAmount], [s].[Id0], [s].[CreatedAt], [s].[Icon], [s].[IsDeleted], [s].[Name], [s].[Type], [s].[UpdatedAt], [s].[UserId]
+FROM (
+    SELECT TOP(1) [b].[Id], [b].[CreatedAt], [b].[EndDate], [b].[IsActive], [b].[IsDeleted], [b].[Name], [b].[Period], [b].[StartDate], [b].[TotalAmount], [b].[UpdatedAt], [b].[UserId]
+    FROM [Budgets] AS [b]
+    WHERE [b].[IsDeleted] = CAST(0 AS bit) AND [b].[UserId] = @__userId_0 AND [b].[IsActive] = CAST(1 AS bit)
+) AS [b1]
+LEFT JOIN (
+    SELECT [b0].[Id], [b0].[BudgetId], [b0].[CategoryId], [b0].[IsIncome], [b0].[IsSystemCategory], [b0].[LimitAmount], [c0].[Id] AS [Id0], [c0].[CreatedAt], [c0].[Icon], [c0].[IsDeleted], [c0].[Name], [c0].[Type], [c0].[UpdatedAt], [c0].[UserId]
+    FROM [BudgetItems] AS [b0]
+    INNER JOIN (
+        SELECT [c].[Id], [c].[CreatedAt], [c].[Icon], [c].[IsDeleted], [c].[Name], [c].[Type], [c].[UpdatedAt], [c].[UserId]
+        FROM [Categories] AS [c]
+        WHERE [c].[IsDeleted] = CAST(0 AS bit)
+    ) AS [c0] ON [b0].[CategoryId] = [c0].[Id]
+) AS [s] ON [b1].[Id] = [s].[BudgetId]
+ORDER BY [b1].[Id], [s].[Id]
+2026-02-24 19:10:59.872 -06:00 [INF] Executed DbCommand (1ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:10:59.889 -06:00 [INF] Executed DbCommand (1ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:10:59.894 -06:00 [INF] Executed DbCommand (1ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:10:59.897 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:10:59.900 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:10:59.903 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Income' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:10:59.903 -06:00 [INF] Executed DbCommand (4ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [t].[Id], [t].[CategoryId], [c0].[Name] AS [CategoryName], [c0].[Icon] AS [CategoryIcon], [t].[Amount], CAST([t].[Type] AS nvarchar(max)) AS [Type], [t].[Date], [t].[Description], [t].[FileId], [t].[IsExtraIncome], [t].[CreatedAt]
+FROM [Transactions] AS [t]
+INNER JOIN (
+    SELECT [c].[Id], [c].[Icon], [c].[Name]
+    FROM [Categories] AS [c]
+    WHERE [c].[IsDeleted] = CAST(0 AS bit)
+) AS [c0] ON [t].[CategoryId] = [c0].[Id]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__userId_0
+ORDER BY [t].[Date] DESC
+2026-02-24 19:10:59.906 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Income' AND [t].[IsExtraIncome] = CAST(1 AS bit) AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:10:59.911 -06:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Ditso.Application.DTOs.Transactions.TransactionDto, Ditso.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-02-24 19:10:59.912 -06:00 [INF] Executed DbCommand (1ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:10:59.914 -06:00 [INF] Executing OkObjectResult, writing value of type 'Ditso.Application.DTOs.Budgets.BudgetDto'.
+2026-02-24 19:10:59.915 -06:00 [INF] Executed action Ditso.API.Controllers.BudgetsController.GetActive (Ditso.API) in 56.9406ms
+2026-02-24 19:10:59.916 -06:00 [INF] Executed endpoint 'Ditso.API.Controllers.BudgetsController.GetActive (Ditso.API)'
+2026-02-24 19:10:59.916 -06:00 [INF] Executed action Ditso.API.Controllers.TransactionsController.GetAll (Ditso.API) in 56.8163ms
+2026-02-24 19:10:59.917 -06:00 [INF] HTTP GET /api/budgets/active responded 200 in 61.8597 ms
+2026-02-24 19:10:59.918 -06:00 [INF] Executed endpoint 'Ditso.API.Controllers.TransactionsController.GetAll (Ditso.API)'
+2026-02-24 19:10:59.919 -06:00 [INF] Request finished HTTP/1.1 GET http://192.168.0.164:5200/api/budgets/active - 200 null application/json; charset=utf-8 65.857ms
+2026-02-24 19:10:59.919 -06:00 [INF] HTTP GET /api/transactions responded 200 in 67.2578 ms
+2026-02-24 19:10:59.922 -06:00 [INF] Request finished HTTP/1.1 GET http://192.168.0.164:5200/api/transactions? - 200 null application/json; charset=utf-8 73.8503ms
+2026-02-24 19:11:16.099 -06:00 [INF] Request starting HTTP/1.1 GET http://192.168.0.164:5200/api/transactions? - null null
+2026-02-24 19:11:16.104 -06:00 [INF] Executing endpoint 'Ditso.API.Controllers.TransactionsController.GetAll (Ditso.API)'
+2026-02-24 19:11:16.104 -06:00 [INF] Route matched with {action = "GetAll", controller = "Transactions"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[System.Collections.Generic.IEnumerable`1[Ditso.Application.DTOs.Transactions.TransactionDto]]] GetAll(System.Nullable`1[System.DateTime], System.Nullable`1[System.DateTime]) on controller Ditso.API.Controllers.TransactionsController (Ditso.API).
+2026-02-24 19:11:16.109 -06:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [t].[Id], [t].[CategoryId], [c0].[Name] AS [CategoryName], [c0].[Icon] AS [CategoryIcon], [t].[Amount], CAST([t].[Type] AS nvarchar(max)) AS [Type], [t].[Date], [t].[Description], [t].[FileId], [t].[IsExtraIncome], [t].[CreatedAt]
+FROM [Transactions] AS [t]
+INNER JOIN (
+    SELECT [c].[Id], [c].[Icon], [c].[Name]
+    FROM [Categories] AS [c]
+    WHERE [c].[IsDeleted] = CAST(0 AS bit)
+) AS [c0] ON [t].[CategoryId] = [c0].[Id]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__userId_0
+ORDER BY [t].[Date] DESC
+2026-02-24 19:11:16.111 -06:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Ditso.Application.DTOs.Transactions.TransactionDto, Ditso.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-02-24 19:11:16.112 -06:00 [INF] Executed action Ditso.API.Controllers.TransactionsController.GetAll (Ditso.API) in 6.5337ms
+2026-02-24 19:11:16.113 -06:00 [INF] Executed endpoint 'Ditso.API.Controllers.TransactionsController.GetAll (Ditso.API)'
+2026-02-24 19:11:16.114 -06:00 [INF] HTTP GET /api/transactions responded 200 in 10.6285 ms
+2026-02-24 19:11:16.115 -06:00 [INF] Request finished HTTP/1.1 GET http://192.168.0.164:5200/api/transactions? - 200 null application/json; charset=utf-8 15.9462ms
+2026-02-24 19:11:17.046 -06:00 [INF] Request starting HTTP/1.1 GET http://192.168.0.164:5200/api/budgets/active - null null
+2026-02-24 19:11:17.047 -06:00 [INF] Request starting HTTP/1.1 GET http://192.168.0.164:5200/api/categories/by-type/Expense - null null
+2026-02-24 19:11:17.050 -06:00 [INF] Executing endpoint 'Ditso.API.Controllers.BudgetsController.GetActive (Ditso.API)'
+2026-02-24 19:11:17.052 -06:00 [INF] Executing endpoint 'Ditso.API.Controllers.CategoriesController.GetByType (Ditso.API)'
+2026-02-24 19:11:17.052 -06:00 [INF] Route matched with {action = "GetActive", controller = "Budgets"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Ditso.Application.DTOs.Budgets.BudgetDto]] GetActive() on controller Ditso.API.Controllers.BudgetsController (Ditso.API).
+2026-02-24 19:11:17.056 -06:00 [INF] Route matched with {action = "GetByType", controller = "Categories"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetByType(System.String) on controller Ditso.API.Controllers.CategoriesController (Ditso.API).
+2026-02-24 19:11:17.057 -06:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [b1].[Id], [b1].[CreatedAt], [b1].[EndDate], [b1].[IsActive], [b1].[IsDeleted], [b1].[Name], [b1].[Period], [b1].[StartDate], [b1].[TotalAmount], [b1].[UpdatedAt], [b1].[UserId], [s].[Id], [s].[BudgetId], [s].[CategoryId], [s].[IsIncome], [s].[IsSystemCategory], [s].[LimitAmount], [s].[Id0], [s].[CreatedAt], [s].[Icon], [s].[IsDeleted], [s].[Name], [s].[Type], [s].[UpdatedAt], [s].[UserId]
+FROM (
+    SELECT TOP(1) [b].[Id], [b].[CreatedAt], [b].[EndDate], [b].[IsActive], [b].[IsDeleted], [b].[Name], [b].[Period], [b].[StartDate], [b].[TotalAmount], [b].[UpdatedAt], [b].[UserId]
+    FROM [Budgets] AS [b]
+    WHERE [b].[IsDeleted] = CAST(0 AS bit) AND [b].[UserId] = @__userId_0 AND [b].[IsActive] = CAST(1 AS bit)
+) AS [b1]
+LEFT JOIN (
+    SELECT [b0].[Id], [b0].[BudgetId], [b0].[CategoryId], [b0].[IsIncome], [b0].[IsSystemCategory], [b0].[LimitAmount], [c0].[Id] AS [Id0], [c0].[CreatedAt], [c0].[Icon], [c0].[IsDeleted], [c0].[Name], [c0].[Type], [c0].[UpdatedAt], [c0].[UserId]
+    FROM [BudgetItems] AS [b0]
+    INNER JOIN (
+        SELECT [c].[Id], [c].[CreatedAt], [c].[Icon], [c].[IsDeleted], [c].[Name], [c].[Type], [c].[UpdatedAt], [c].[UserId]
+        FROM [Categories] AS [c]
+        WHERE [c].[IsDeleted] = CAST(0 AS bit)
+    ) AS [c0] ON [b0].[CategoryId] = [c0].[Id]
+) AS [s] ON [b1].[Id] = [s].[BudgetId]
+ORDER BY [b1].[Id], [s].[Id]
+2026-02-24 19:11:17.061 -06:00 [INF] Executed DbCommand (1ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:11:17.063 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:11:17.066 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:11:17.068 -06:00 [INF] Executed DbCommand (1ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:11:17.072 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:11:17.075 -06:00 [INF] Executed DbCommand (1ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Income' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:11:17.075 -06:00 [INF] Executed DbCommand (2ms) [Parameters=[@__userId_0='?' (DbType = Int32), @__8__locals1_type_1='?' (Size = 4000)], CommandType='"Text"', CommandTimeout='30']
+SELECT [c].[Id], [c].[Name], [c].[Icon], CAST([c].[Type] AS nvarchar(max)) AS [Type], CASE
+    WHEN [c].[UserId] IS NOT NULL THEN CAST(1 AS bit)
+    ELSE CAST(0 AS bit)
+END AS [IsCustom]
+FROM [Categories] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND ([c].[UserId] IS NULL OR [c].[UserId] = @__userId_0) AND CAST([c].[Type] AS nvarchar(max)) = @__8__locals1_type_1
+ORDER BY [c].[Name]
+2026-02-24 19:11:17.077 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Income' AND [t].[IsExtraIncome] = CAST(1 AS bit) AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:11:17.079 -06:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[<>f__AnonymousType2`5[[System.Int32, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Boolean, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], Ditso.API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-02-24 19:11:17.080 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:11:17.082 -06:00 [INF] Executing OkObjectResult, writing value of type 'Ditso.Application.DTOs.Budgets.BudgetDto'.
+2026-02-24 19:11:17.083 -06:00 [INF] Executed action Ditso.API.Controllers.BudgetsController.GetActive (Ditso.API) in 29.0794ms
+2026-02-24 19:11:17.084 -06:00 [INF] Executed action Ditso.API.Controllers.CategoriesController.GetByType (Ditso.API) in 26.5495ms
+2026-02-24 19:11:17.086 -06:00 [INF] Executed endpoint 'Ditso.API.Controllers.BudgetsController.GetActive (Ditso.API)'
+2026-02-24 19:11:17.087 -06:00 [INF] Executed endpoint 'Ditso.API.Controllers.CategoriesController.GetByType (Ditso.API)'
+2026-02-24 19:11:17.088 -06:00 [INF] HTTP GET /api/budgets/active responded 200 in 37.5625 ms
+2026-02-24 19:11:17.088 -06:00 [INF] HTTP GET /api/categories/by-type/Expense responded 200 in 36.5634 ms
+2026-02-24 19:11:17.089 -06:00 [INF] Request finished HTTP/1.1 GET http://192.168.0.164:5200/api/budgets/active - 200 null application/json; charset=utf-8 42.6467ms
+2026-02-24 19:11:17.090 -06:00 [INF] Request finished HTTP/1.1 GET http://192.168.0.164:5200/api/categories/by-type/Expense - 200 null application/json; charset=utf-8 43.4477ms
+2026-02-24 19:11:19.592 -06:00 [INF] Request starting HTTP/1.1 GET http://192.168.0.164:5200/api/financial-health?startDate=2026-02-16&endDate=2026-02-28 - null null
+2026-02-24 19:11:19.596 -06:00 [INF] Executing endpoint 'Ditso.API.Controllers.FinancialHealthController.GetHealth (Ditso.API)'
+2026-02-24 19:11:19.599 -06:00 [INF] Route matched with {action = "GetHealth", controller = "FinancialHealth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Ditso.Application.DTOs.FinancialHealth.FinancialHealthDto]] GetHealth(System.Nullable`1[System.DateTime], System.Nullable`1[System.DateTime]) on controller Ditso.API.Controllers.FinancialHealthController (Ditso.API).
+2026-02-24 19:11:19.613 -06:00 [INF] Executed DbCommand (2ms) [Parameters=[@__userId_0='?' (DbType = Int32), @__start_1='?' (DbType = DateTime2), @__end_2='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT [t].[Id], [t].[Amount], [t].[CategoryId], [t].[CreatedAt], [t].[Date], [t].[Description], [t].[FileId], [t].[IsDeleted], [t].[IsExtraIncome], [t].[RowVersion], [t].[Type], [t].[UpdatedAt], [t].[UserId]
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__userId_0 AND [t].[IsDeleted] = CAST(0 AS bit) AND [t].[Date] >= @__start_1 AND [t].[Date] <= @__end_2
+2026-02-24 19:11:19.640 -06:00 [INF] Executed DbCommand (6ms) [Parameters=[@__userId_0='?' (DbType = Int32), @__end_1='?' (DbType = DateTime2), @__start_2='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [b].[Id], [b].[CreatedAt], [b].[EndDate], [b].[IsActive], [b].[IsDeleted], [b].[Name], [b].[Period], [b].[StartDate], [b].[TotalAmount], [b].[UpdatedAt], [b].[UserId]
+FROM [Budgets] AS [b]
+WHERE [b].[IsDeleted] = CAST(0 AS bit) AND [b].[UserId] = @__userId_0 AND [b].[IsActive] = CAST(1 AS bit) AND [b].[StartDate] <= @__end_1 AND [b].[EndDate] >= @__start_2
+2026-02-24 19:11:19.644 -06:00 [INF] Executing OkObjectResult, writing value of type 'Ditso.Application.DTOs.FinancialHealth.FinancialHealthDto'.
+2026-02-24 19:11:19.646 -06:00 [INF] Executed action Ditso.API.Controllers.FinancialHealthController.GetHealth (Ditso.API) in 45.6952ms
+2026-02-24 19:11:19.647 -06:00 [INF] Executed endpoint 'Ditso.API.Controllers.FinancialHealthController.GetHealth (Ditso.API)'
+2026-02-24 19:11:19.647 -06:00 [INF] HTTP GET /api/financial-health responded 200 in 51.4884 ms
+2026-02-24 19:11:19.648 -06:00 [INF] Request finished HTTP/1.1 GET http://192.168.0.164:5200/api/financial-health?startDate=2026-02-16&endDate=2026-02-28 - 200 null application/json; charset=utf-8 55.9215ms
+2026-02-24 19:11:46.572 -06:00 [INF] Request starting HTTP/1.1 GET http://192.168.0.164:5200/api/financial-health?startDate=2026-02-16&endDate=2026-02-28 - null null
+2026-02-24 19:11:46.576 -06:00 [INF] Executing endpoint 'Ditso.API.Controllers.FinancialHealthController.GetHealth (Ditso.API)'
+2026-02-24 19:11:46.576 -06:00 [INF] Route matched with {action = "GetHealth", controller = "FinancialHealth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Ditso.Application.DTOs.FinancialHealth.FinancialHealthDto]] GetHealth(System.Nullable`1[System.DateTime], System.Nullable`1[System.DateTime]) on controller Ditso.API.Controllers.FinancialHealthController (Ditso.API).
+2026-02-24 19:11:46.579 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__userId_0='?' (DbType = Int32), @__start_1='?' (DbType = DateTime2), @__end_2='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT [t].[Id], [t].[Amount], [t].[CategoryId], [t].[CreatedAt], [t].[Date], [t].[Description], [t].[FileId], [t].[IsDeleted], [t].[IsExtraIncome], [t].[RowVersion], [t].[Type], [t].[UpdatedAt], [t].[UserId]
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__userId_0 AND [t].[IsDeleted] = CAST(0 AS bit) AND [t].[Date] >= @__start_1 AND [t].[Date] <= @__end_2
+2026-02-24 19:11:46.581 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__userId_0='?' (DbType = Int32), @__end_1='?' (DbType = DateTime2), @__start_2='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [b].[Id], [b].[CreatedAt], [b].[EndDate], [b].[IsActive], [b].[IsDeleted], [b].[Name], [b].[Period], [b].[StartDate], [b].[TotalAmount], [b].[UpdatedAt], [b].[UserId]
+FROM [Budgets] AS [b]
+WHERE [b].[IsDeleted] = CAST(0 AS bit) AND [b].[UserId] = @__userId_0 AND [b].[IsActive] = CAST(1 AS bit) AND [b].[StartDate] <= @__end_1 AND [b].[EndDate] >= @__start_2
+2026-02-24 19:11:46.583 -06:00 [INF] Executing OkObjectResult, writing value of type 'Ditso.Application.DTOs.FinancialHealth.FinancialHealthDto'.
+2026-02-24 19:11:46.583 -06:00 [INF] Executed action Ditso.API.Controllers.FinancialHealthController.GetHealth (Ditso.API) in 6.1488ms
+2026-02-24 19:11:46.584 -06:00 [INF] Executed endpoint 'Ditso.API.Controllers.FinancialHealthController.GetHealth (Ditso.API)'
+2026-02-24 19:11:46.585 -06:00 [INF] HTTP GET /api/financial-health responded 200 in 9.5600 ms
+2026-02-24 19:11:46.586 -06:00 [INF] Request finished HTTP/1.1 GET http://192.168.0.164:5200/api/financial-health?startDate=2026-02-16&endDate=2026-02-28 - 200 null application/json; charset=utf-8 13.5193ms
+2026-02-24 19:12:04.352 -06:00 [INF] Request starting HTTP/1.1 GET http://192.168.0.164:5200/api/financial-health?startDate=2026-02-16&endDate=2026-02-28 - null null
+2026-02-24 19:12:04.356 -06:00 [INF] Executing endpoint 'Ditso.API.Controllers.FinancialHealthController.GetHealth (Ditso.API)'
+2026-02-24 19:12:04.357 -06:00 [INF] Route matched with {action = "GetHealth", controller = "FinancialHealth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Ditso.Application.DTOs.FinancialHealth.FinancialHealthDto]] GetHealth(System.Nullable`1[System.DateTime], System.Nullable`1[System.DateTime]) on controller Ditso.API.Controllers.FinancialHealthController (Ditso.API).
+2026-02-24 19:12:04.360 -06:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Int32), @__start_1='?' (DbType = DateTime2), @__end_2='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT [t].[Id], [t].[Amount], [t].[CategoryId], [t].[CreatedAt], [t].[Date], [t].[Description], [t].[FileId], [t].[IsDeleted], [t].[IsExtraIncome], [t].[RowVersion], [t].[Type], [t].[UpdatedAt], [t].[UserId]
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__userId_0 AND [t].[IsDeleted] = CAST(0 AS bit) AND [t].[Date] >= @__start_1 AND [t].[Date] <= @__end_2
+2026-02-24 19:12:04.363 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__userId_0='?' (DbType = Int32), @__end_1='?' (DbType = DateTime2), @__start_2='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [b].[Id], [b].[CreatedAt], [b].[EndDate], [b].[IsActive], [b].[IsDeleted], [b].[Name], [b].[Period], [b].[StartDate], [b].[TotalAmount], [b].[UpdatedAt], [b].[UserId]
+FROM [Budgets] AS [b]
+WHERE [b].[IsDeleted] = CAST(0 AS bit) AND [b].[UserId] = @__userId_0 AND [b].[IsActive] = CAST(1 AS bit) AND [b].[StartDate] <= @__end_1 AND [b].[EndDate] >= @__start_2
+2026-02-24 19:12:04.365 -06:00 [INF] Executing OkObjectResult, writing value of type 'Ditso.Application.DTOs.FinancialHealth.FinancialHealthDto'.
+2026-02-24 19:12:04.366 -06:00 [INF] Executed action Ditso.API.Controllers.FinancialHealthController.GetHealth (Ditso.API) in 7.7963ms
+2026-02-24 19:12:04.366 -06:00 [INF] Executed endpoint 'Ditso.API.Controllers.FinancialHealthController.GetHealth (Ditso.API)'
+2026-02-24 19:12:04.367 -06:00 [INF] HTTP GET /api/financial-health responded 200 in 11.6737 ms
+2026-02-24 19:12:04.370 -06:00 [INF] Request finished HTTP/1.1 GET http://192.168.0.164:5200/api/financial-health?startDate=2026-02-16&endDate=2026-02-28 - 200 null application/json; charset=utf-8 18.3221ms
+2026-02-24 19:12:39.082 -06:00 [INF] Request starting HTTP/1.1 GET http://192.168.0.164:5200/api/budgets/active - null null
+2026-02-24 19:12:39.082 -06:00 [INF] Request starting HTTP/1.1 GET http://192.168.0.164:5200/api/budgets/active-categories?type=Expense - null null
+2026-02-24 19:12:39.085 -06:00 [INF] Executing endpoint 'Ditso.API.Controllers.BudgetsController.GetActive (Ditso.API)'
+2026-02-24 19:12:39.087 -06:00 [INF] Executing endpoint 'Ditso.API.Controllers.BudgetsController.GetActiveCategories (Ditso.API)'
+2026-02-24 19:12:39.088 -06:00 [INF] Route matched with {action = "GetActive", controller = "Budgets"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Ditso.Application.DTOs.Budgets.BudgetDto]] GetActive() on controller Ditso.API.Controllers.BudgetsController (Ditso.API).
+2026-02-24 19:12:39.091 -06:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [b1].[Id], [b1].[CreatedAt], [b1].[EndDate], [b1].[IsActive], [b1].[IsDeleted], [b1].[Name], [b1].[Period], [b1].[StartDate], [b1].[TotalAmount], [b1].[UpdatedAt], [b1].[UserId], [s].[Id], [s].[BudgetId], [s].[CategoryId], [s].[IsIncome], [s].[IsSystemCategory], [s].[LimitAmount], [s].[Id0], [s].[CreatedAt], [s].[Icon], [s].[IsDeleted], [s].[Name], [s].[Type], [s].[UpdatedAt], [s].[UserId]
+FROM (
+    SELECT TOP(1) [b].[Id], [b].[CreatedAt], [b].[EndDate], [b].[IsActive], [b].[IsDeleted], [b].[Name], [b].[Period], [b].[StartDate], [b].[TotalAmount], [b].[UpdatedAt], [b].[UserId]
+    FROM [Budgets] AS [b]
+    WHERE [b].[IsDeleted] = CAST(0 AS bit) AND [b].[UserId] = @__userId_0 AND [b].[IsActive] = CAST(1 AS bit)
+) AS [b1]
+LEFT JOIN (
+    SELECT [b0].[Id], [b0].[BudgetId], [b0].[CategoryId], [b0].[IsIncome], [b0].[IsSystemCategory], [b0].[LimitAmount], [c0].[Id] AS [Id0], [c0].[CreatedAt], [c0].[Icon], [c0].[IsDeleted], [c0].[Name], [c0].[Type], [c0].[UpdatedAt], [c0].[UserId]
+    FROM [BudgetItems] AS [b0]
+    INNER JOIN (
+        SELECT [c].[Id], [c].[CreatedAt], [c].[Icon], [c].[IsDeleted], [c].[Name], [c].[Type], [c].[UpdatedAt], [c].[UserId]
+        FROM [Categories] AS [c]
+        WHERE [c].[IsDeleted] = CAST(0 AS bit)
+    ) AS [c0] ON [b0].[CategoryId] = [c0].[Id]
+) AS [s] ON [b1].[Id] = [s].[BudgetId]
+ORDER BY [b1].[Id], [s].[Id]
+2026-02-24 19:12:39.092 -06:00 [INF] Route matched with {action = "GetActiveCategories", controller = "Budgets"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[System.Collections.Generic.IEnumerable`1[Ditso.Application.DTOs.Budgets.ActiveCategoryDto]]] GetActiveCategories(System.String) on controller Ditso.API.Controllers.BudgetsController (Ditso.API).
+2026-02-24 19:12:39.094 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:12:39.097 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:12:39.097 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [b1].[Id], [b1].[CreatedAt], [b1].[EndDate], [b1].[IsActive], [b1].[IsDeleted], [b1].[Name], [b1].[Period], [b1].[StartDate], [b1].[TotalAmount], [b1].[UpdatedAt], [b1].[UserId], [s].[Id], [s].[BudgetId], [s].[CategoryId], [s].[IsIncome], [s].[IsSystemCategory], [s].[LimitAmount], [s].[Id0], [s].[CreatedAt], [s].[Icon], [s].[IsDeleted], [s].[Name], [s].[Type], [s].[UpdatedAt], [s].[UserId]
+FROM (
+    SELECT TOP(1) [b].[Id], [b].[CreatedAt], [b].[EndDate], [b].[IsActive], [b].[IsDeleted], [b].[Name], [b].[Period], [b].[StartDate], [b].[TotalAmount], [b].[UpdatedAt], [b].[UserId]
+    FROM [Budgets] AS [b]
+    WHERE [b].[IsDeleted] = CAST(0 AS bit) AND [b].[UserId] = @__userId_0 AND [b].[IsActive] = CAST(1 AS bit)
+) AS [b1]
+LEFT JOIN (
+    SELECT [b0].[Id], [b0].[BudgetId], [b0].[CategoryId], [b0].[IsIncome], [b0].[IsSystemCategory], [b0].[LimitAmount], [c0].[Id] AS [Id0], [c0].[CreatedAt], [c0].[Icon], [c0].[IsDeleted], [c0].[Name], [c0].[Type], [c0].[UpdatedAt], [c0].[UserId]
+    FROM [BudgetItems] AS [b0]
+    INNER JOIN (
+        SELECT [c].[Id], [c].[CreatedAt], [c].[Icon], [c].[IsDeleted], [c].[Name], [c].[Type], [c].[UpdatedAt], [c].[UserId]
+        FROM [Categories] AS [c]
+        WHERE [c].[IsDeleted] = CAST(0 AS bit)
+    ) AS [c0] ON [b0].[CategoryId] = [c0].[Id]
+) AS [s] ON [b1].[Id] = [s].[BudgetId]
+ORDER BY [b1].[Id], [s].[Id]
+2026-02-24 19:12:39.101 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:12:39.103 -06:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Ditso.Application.DTOs.Budgets.ActiveCategoryDto, Ditso.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-02-24 19:12:39.104 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:12:39.105 -06:00 [INF] Executed action Ditso.API.Controllers.BudgetsController.GetActiveCategories (Ditso.API) in 11.3372ms
+2026-02-24 19:12:39.106 -06:00 [INF] Executed endpoint 'Ditso.API.Controllers.BudgetsController.GetActiveCategories (Ditso.API)'
+2026-02-24 19:12:39.106 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:12:39.107 -06:00 [INF] HTTP GET /api/budgets/active-categories responded 200 in 20.3861 ms
+2026-02-24 19:12:39.109 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Income' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:12:39.110 -06:00 [INF] Request finished HTTP/1.1 GET http://192.168.0.164:5200/api/budgets/active-categories?type=Expense - 200 null application/json; charset=utf-8 27.6323ms
+2026-02-24 19:12:39.111 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Income' AND [t].[IsExtraIncome] = CAST(1 AS bit) AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:12:39.114 -06:00 [INF] Executed DbCommand (1ms) [Parameters=[@__8__locals1_userId_0='?' (DbType = Int32), @__item_CategoryId_1='?' (DbType = Int32), @__8__locals1_budget_StartDate_2='?' (DbType = DateTime2), @__8__locals1_budget_EndDate_3='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT COALESCE(SUM([t].[Amount]), 0.0)
+FROM [Transactions] AS [t]
+WHERE [t].[IsDeleted] = CAST(0 AS bit) AND [t].[UserId] = @__8__locals1_userId_0 AND [t].[CategoryId] = @__item_CategoryId_1 AND [t].[Type] = N'Expense' AND [t].[Date] >= @__8__locals1_budget_StartDate_2 AND [t].[Date] <= @__8__locals1_budget_EndDate_3
+2026-02-24 19:12:39.117 -06:00 [INF] Executing OkObjectResult, writing value of type 'Ditso.Application.DTOs.Budgets.BudgetDto'.
+2026-02-24 19:12:39.118 -06:00 [INF] Executed action Ditso.API.Controllers.BudgetsController.GetActive (Ditso.API) in 28.7667ms
+2026-02-24 19:12:39.119 -06:00 [INF] Executed endpoint 'Ditso.API.Controllers.BudgetsController.GetActive (Ditso.API)'
+2026-02-24 19:12:39.120 -06:00 [INF] HTTP GET /api/budgets/active responded 200 in 35.2074 ms
+2026-02-24 19:12:39.121 -06:00 [INF] Request finished HTTP/1.1 GET http://192.168.0.164:5200/api/budgets/active - 200 null application/json; charset=utf-8 38.937ms
+2026-02-24 19:13:17.287 -06:00 [INF] Request starting HTTP/1.1 POST http://192.168.0.164:5200/api/auth/register - application/json 69
+2026-02-24 19:13:17.291 -06:00 [INF] Executing endpoint 'Ditso.API.Controllers.AuthController.Register (Ditso.API)'
+2026-02-24 19:13:17.294 -06:00 [INF] Route matched with {action = "Register", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Ditso.Application.DTOs.Auth.UserDto]] Register(Ditso.Application.DTOs.Auth.RegisterRequestDto) on controller Ditso.API.Controllers.AuthController (Ditso.API).
+2026-02-24 19:13:17.309 -06:00 [INF] Executed DbCommand (2ms) [Parameters=[@__request_Email_0='?' (Size = 255)], CommandType='"Text"', CommandTimeout='30']
+SELECT CASE
+    WHEN EXISTS (
+        SELECT 1
+        FROM [Users] AS [u]
+        WHERE [u].[IsDeleted] = CAST(0 AS bit) AND [u].[Email] = @__request_Email_0) THEN CAST(1 AS bit)
+    ELSE CAST(0 AS bit)
+END
+2026-02-24 19:13:17.552 -06:00 [INF] Executed DbCommand (2ms) [Parameters=[@p0='?' (DbType = DateTime2), @p1='?' (Size = 255), @p2='?' (Size = 200), @p3='?' (DbType = Boolean), @p4='?' (DbType = Boolean), @p5='?' (Size = 512), @p6='?' (Size = 50), @p7='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [Users] ([CreatedAt], [Email], [FullName], [IsActive], [IsDeleted], [PasswordHash], [Role], [UpdatedAt])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7);
+2026-02-24 19:13:17.556 -06:00 [INF] Nuevo usuario registrado: test2@test.com
+2026-02-24 19:13:17.558 -06:00 [INF] Executing CreatedAtActionResult, writing value of type 'Ditso.Application.DTOs.Auth.UserDto'.
+2026-02-24 19:13:17.571 -06:00 [INF] Executed action Ditso.API.Controllers.AuthController.Register (Ditso.API) in 274.9566ms
+2026-02-24 19:13:17.572 -06:00 [INF] Executed endpoint 'Ditso.API.Controllers.AuthController.Register (Ditso.API)'
+2026-02-24 19:13:17.573 -06:00 [INF] HTTP POST /api/auth/register responded 201 in 281.3545 ms
+2026-02-24 19:13:17.574 -06:00 [INF] Request finished HTTP/1.1 POST http://192.168.0.164:5200/api/auth/register - 201 null application/json; charset=utf-8 286.5855ms
+2026-02-24 19:13:17.584 -06:00 [INF] Request starting HTTP/1.1 POST http://192.168.0.164:5200/api/auth/login - application/json 49
+2026-02-24 19:13:17.586 -06:00 [INF] Executing endpoint 'Ditso.API.Controllers.AuthController.Login (Ditso.API)'
+2026-02-24 19:13:17.587 -06:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Ditso.Application.DTOs.Auth.LoginResponseDto]] Login(Ditso.Application.DTOs.Auth.LoginRequestDto) on controller Ditso.API.Controllers.AuthController (Ditso.API).
+2026-02-24 19:13:17.590 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__request_Email_0='?' (Size = 255)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[CreatedAt], [u].[Email], [u].[FullName], [u].[IsActive], [u].[IsDeleted], [u].[PasswordHash], [u].[Role], [u].[UpdatedAt]
+FROM [Users] AS [u]
+WHERE [u].[IsDeleted] = CAST(0 AS bit) AND [u].[Email] = @__request_Email_0
+2026-02-24 19:13:17.799 -06:00 [INF] Executed DbCommand (1ms) [Parameters=[@p0='?' (DbType = DateTime2), @p1='?' (DbType = DateTime2), @p2='?' (DbType = Boolean), @p3='?' (Size = 512), @p4='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [RefreshTokens] ([CreatedAt], [ExpiresAt], [IsRevoked], [Token], [UserId])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3, @p4);
+2026-02-24 19:13:17.801 -06:00 [INF] Usuario test2@test.com inició sesión exitosamente
+2026-02-24 19:13:17.802 -06:00 [INF] Executing OkObjectResult, writing value of type 'Ditso.Application.DTOs.Auth.LoginResponseDto'.
+2026-02-24 19:13:17.802 -06:00 [INF] Executed action Ditso.API.Controllers.AuthController.Login (Ditso.API) in 214.3875ms
+2026-02-24 19:13:17.803 -06:00 [INF] Executed endpoint 'Ditso.API.Controllers.AuthController.Login (Ditso.API)'
+2026-02-24 19:13:17.804 -06:00 [INF] HTTP POST /api/auth/login responded 200 in 217.5073 ms
+2026-02-24 19:13:17.805 -06:00 [INF] Request finished HTTP/1.1 POST http://192.168.0.164:5200/api/auth/login - 200 null application/json; charset=utf-8 220.2281ms
+2026-02-24 19:13:17.856 -06:00 [INF] Request starting HTTP/1.1 GET http://192.168.0.164:5200/api/budgets/active - null null
+2026-02-24 19:13:17.859 -06:00 [INF] Executing endpoint 'Ditso.API.Controllers.BudgetsController.GetActive (Ditso.API)'
+2026-02-24 19:13:17.860 -06:00 [INF] Route matched with {action = "GetActive", controller = "Budgets"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[Ditso.Application.DTOs.Budgets.BudgetDto]] GetActive() on controller Ditso.API.Controllers.BudgetsController (Ditso.API).
+2026-02-24 19:13:17.862 -06:00 [INF] Executed DbCommand (0ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [b1].[Id], [b1].[CreatedAt], [b1].[EndDate], [b1].[IsActive], [b1].[IsDeleted], [b1].[Name], [b1].[Period], [b1].[StartDate], [b1].[TotalAmount], [b1].[UpdatedAt], [b1].[UserId], [s].[Id], [s].[BudgetId], [s].[CategoryId], [s].[IsIncome], [s].[IsSystemCategory], [s].[LimitAmount], [s].[Id0], [s].[CreatedAt], [s].[Icon], [s].[IsDeleted], [s].[Name], [s].[Type], [s].[UpdatedAt], [s].[UserId]
+FROM (
+    SELECT TOP(1) [b].[Id], [b].[CreatedAt], [b].[EndDate], [b].[IsActive], [b].[IsDeleted], [b].[Name], [b].[Period], [b].[StartDate], [b].[TotalAmount], [b].[UpdatedAt], [b].[UserId]
+    FROM [Budgets] AS [b]
+    WHERE [b].[IsDeleted] = CAST(0 AS bit) AND [b].[UserId] = @__userId_0 AND [b].[IsActive] = CAST(1 AS bit)
+) AS [b1]
+LEFT JOIN (
+    SELECT [b0].[Id], [b0].[BudgetId], [b0].[CategoryId], [b0].[IsIncome], [b0].[IsSystemCategory], [b0].[LimitAmount], [c0].[Id] AS [Id0], [c0].[CreatedAt], [c0].[Icon], [c0].[IsDeleted], [c0].[Name], [c0].[Type], [c0].[UpdatedAt], [c0].[UserId]
+    FROM [BudgetItems] AS [b0]
+    INNER JOIN (
+        SELECT [c].[Id], [c].[CreatedAt], [c].[Icon], [c].[IsDeleted], [c].[Name], [c].[Type], [c].[UpdatedAt], [c].[UserId]
+        FROM [Categories] AS [c]
+        WHERE [c].[IsDeleted] = CAST(0 AS bit)
+    ) AS [c0] ON [b0].[CategoryId] = [c0].[Id]
+) AS [s] ON [b1].[Id] = [s].[BudgetId]
+ORDER BY [b1].[Id], [s].[Id]
+2026-02-24 19:13:17.864 -06:00 [INF] Executing NotFoundObjectResult, writing value of type '<>f__AnonymousType0`1[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-02-24 19:13:17.865 -06:00 [INF] Executed action Ditso.API.Controllers.BudgetsController.GetActive (Ditso.API) in 4.7205ms
+2026-02-24 19:13:17.866 -06:00 [INF] Executed endpoint 'Ditso.API.Controllers.BudgetsController.GetActive (Ditso.API)'
+2026-02-24 19:13:17.867 -06:00 [INF] HTTP GET /api/budgets/active responded 404 in 7.9069 ms
+2026-02-24 19:13:17.868 -06:00 [INF] Request finished HTTP/1.1 GET http://192.168.0.164:5200/api/budgets/active - 404 null application/json; charset=utf-8 12.1947ms
+2026-02-24 19:16:49.909 -06:00 [INF] Application is shutting down...
