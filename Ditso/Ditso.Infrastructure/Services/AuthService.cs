@@ -158,4 +158,56 @@ public class AuthService : IAuthService
 
         return refreshToken.Token;
     }
+
+    public async Task<UserDto> UpdateProfileAsync(int userId, UpdateProfileRequestDto request)
+    {
+        var user = await _context.Users.FindAsync(userId)
+            ?? throw new KeyNotFoundException("Usuario no encontrado.");
+
+        user.FullName = request.FullName.Trim();
+
+        // Registrar en AuditLog
+        _context.AuditLogs.Add(new AuditLog
+        {
+            UserId = userId,
+            Action = "ProfileUpdated",
+            EntityType = "User",
+            EntityId = userId,
+            Details = $"FullName actualizado a '{user.FullName}'",
+            Timestamp = DateTime.UtcNow
+        });
+
+        await _context.SaveChangesAsync();
+
+        return new UserDto
+        {
+            Id = user.Id,
+            Email = user.Email,
+            FullName = user.FullName,
+            Role = user.Role.ToString()
+        };
+    }
+
+    public async Task ChangePasswordAsync(int userId, ChangePasswordRequestDto request)
+    {
+        var user = await _context.Users.FindAsync(userId)
+            ?? throw new KeyNotFoundException("Usuario no encontrado.");
+
+        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+            throw new UnauthorizedAccessException("La contraseña actual es incorrecta.");
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+
+        _context.AuditLogs.Add(new AuditLog
+        {
+            UserId = userId,
+            Action = "PasswordChanged",
+            EntityType = "User",
+            EntityId = userId,
+            Details = "Contraseña cambiada por el usuario.",
+            Timestamp = DateTime.UtcNow
+        });
+
+        await _context.SaveChangesAsync();
+    }
 }

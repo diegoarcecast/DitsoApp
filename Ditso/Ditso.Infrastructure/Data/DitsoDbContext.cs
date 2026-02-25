@@ -20,6 +20,7 @@ public class DitsoDbContext : DbContext
     public DbSet<Debt> Debts => Set<Debt>();
     public DbSet<Goal> Goals => Set<Goal>();
     public DbSet<FileEntity> Files => Set<FileEntity>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -195,6 +196,23 @@ entity.HasOne(e => e.User)
 
         // Seed data - Categorías predefinidas
         SeedCategories(modelBuilder);
+
+        // AuditLog configuration
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Action).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Details).HasMaxLength(1000);
+            entity.Property(e => e.Timestamp).IsRequired();
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(e => new { e.UserId, e.Timestamp });
+        });
     }
 
     private void SeedCategories(ModelBuilder modelBuilder)

@@ -12,6 +12,8 @@ import BudgetScreen from '../screens/BudgetScreen';
 import BalanceScreen from '../screens/BalanceScreen';
 import BudgetOnboardingScreen from '../screens/BudgetOnboardingScreen';
 import BudgetEditScreen from '../screens/BudgetEditScreen';
+import ReportsScreen from '../screens/ReportsScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 import { budgetService } from '../services/budgetService';
 import { colors } from '../theme';
 
@@ -76,6 +78,22 @@ function MainTabs() {
                 options={{
                     title: 'Balance',
                     tabBarIcon: ({ focused }) => <TabIcon emoji="🧠" focused={focused} />,
+                }}
+            />
+            <Tab.Screen
+                name="Reportes"
+                component={ReportsScreen}
+                options={{
+                    title: 'Reportes',
+                    tabBarIcon: ({ focused }) => <TabIcon emoji="📊" focused={focused} />,
+                }}
+            />
+            <Tab.Screen
+                name="Perfil"
+                component={ProfileScreen}
+                options={{
+                    title: 'Perfil',
+                    tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} />,
                 }}
             />
         </Tab.Navigator>

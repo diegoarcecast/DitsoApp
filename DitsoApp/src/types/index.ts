@@ -142,3 +142,40 @@ export interface SuggestedDistributionItem {
     suggestedAmount: number;
     isIncome: boolean;
 }
+
+// ── Reports ──────────────────────────────────────────────────────────────────
+export interface CategoryReportItem {
+    categoryName: string;
+    categoryIcon: string;
+    totalExpense: number;
+    percentage: number;
+}
+
+export interface PeriodReport {
+    startDate: string;
+    endDate: string;
+    totalIncome: number;
+    totalExpense: number;
+    balance: number;
+    savingsRate: number;
+    byCategory: CategoryReportItem[];
+}
+
+export interface MonthlyDataPoint {
+    month: number;
+    monthName: string;
+    totalExpense: number;
+    totalIncome: number;
+    balance: number;
+}
+
+// ── Profile ───────────────────────────────────────────────────────────────────
+export interface UpdateProfileRequest {
+    fullName: string;
+}
+
+export interface ChangePasswordRequest {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+}

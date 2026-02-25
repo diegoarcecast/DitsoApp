@@ -31,6 +31,7 @@ builder.Services.AddScoped<Ditso.Application.Interfaces.IAuthService, Ditso.Infr
 builder.Services.AddScoped<Ditso.Application.Interfaces.ITransactionService, Ditso.Infrastructure.Services.TransactionService>();
 builder.Services.AddScoped<Ditso.Application.Interfaces.IBudgetService, Ditso.Infrastructure.Services.BudgetService>();
 builder.Services.AddScoped<Ditso.Application.Interfaces.IFinancialHealthService, Ditso.Infrastructure.Services.FinancialHealthService>();
+builder.Services.AddScoped<Ditso.Application.Interfaces.IReportService, Ditso.Infrastructure.Services.ReportService>();
 
 // Configure Swagger with JWT
 builder.Services.AddSwaggerGen(options =>
