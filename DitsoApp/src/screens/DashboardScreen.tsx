@@ -245,7 +245,7 @@ export default function DashboardScreen({ navigation }: any) {
             {/* ─── §3 — Balance Inteligente (solo lectura) ─── */}
             {budget && reco && (
                 <View style={s.card}>
-                    <Text style={s.cardTitle}>🧠 Balance Inteligente</Text>
+                    <Text style={s.cardTitle}>⚖️ Balance Inteligente</Text>
                     <Text style={s.recoSubtitle}>Análisis automático · Solo lectura</Text>
 
                     <View style={s.recoItem}>

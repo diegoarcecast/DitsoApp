@@ -145,7 +145,7 @@ export default function BalanceScreen() {
 
             {/* Header */}
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>🧠 Balance Inteligente</Text>
+                <Text style={styles.headerTitle}>⚖️ Balance Inteligente</Text>
                 <Text style={styles.headerSub}>Analiza tu salud financiera en cualquier período</Text>
             </View>
 

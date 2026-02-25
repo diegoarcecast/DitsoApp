@@ -37,7 +37,7 @@ export function FinancialHealthCard({ data, loading, onViewDetail }: Props) {
         <View style={[styles.card, { backgroundColor: palette.bg, borderColor: palette.border }]}>
             {/* Title row */}
             <View style={styles.row}>
-                <Text style={styles.title}>🧠 Balance Inteligente</Text>
+                <Text style={styles.title}>⚖️ Balance Inteligente</Text>
                 <Text style={styles.statusBadge}>
                     {data.statusEmoji} {data.healthStatus}
                 </Text>

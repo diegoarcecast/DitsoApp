@@ -28,9 +28,22 @@ public class FinancialHealthService : IFinancialHealthService
                      && t.Date <= end)
             .ToListAsync();
 
-        var totalIncome = transactions
+        // Ingreso base = TotalAmount del presupuesto activo que solape con el período
+        var activeBudget = await _db.Budgets
+            .FirstOrDefaultAsync(b => b.UserId == userId
+                                   && b.IsActive
+                                   && b.StartDate <= end
+                                   && b.EndDate   >= start);
+
+        var budgetBase = activeBudget?.TotalAmount ?? 0m;
+
+        // Ingresos extra = transacciones Income del período (excepto las del ingreso planificado base)
+        var extraIncome = transactions
             .Where(t => t.Type == TransactionType.Income)
             .Sum(t => t.Amount);
+
+        // Ingreso total = presupuesto base + cualquier ingreso adicional registrado
+        var totalIncome = budgetBase + extraIncome;
 
         var totalExpense = transactions
             .Where(t => t.Type == TransactionType.Expense)
