@@ -34,4 +34,6 @@ public class UpdateTransactionDto
     public DateTime? Date { get; set; }
     public string? Description { get; set; }
     public bool? IsExtraIncome { get; set; }
+    /// <summary>ID del comprobante subido vía POST /api/files/upload. Null = sin cambio. -1 = desvincular.</summary>
+    public int? FileId { get; set; }
 }

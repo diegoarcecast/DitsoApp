@@ -131,6 +131,10 @@ public class TransactionService : ITransactionService
         if (dto.IsExtraIncome.HasValue)
             transaction.IsExtraIncome = dto.IsExtraIncome.Value;
 
+        // -1 = desvincular comprobante; > 0 = vincular nuevo comprobante
+        if (dto.FileId.HasValue)
+            transaction.FileId = dto.FileId.Value == -1 ? null : dto.FileId.Value;
+
         await _context.SaveChangesAsync();
 
         if (dto.CategoryId.HasValue)

@@ -23,9 +23,16 @@ export default function TransactionsScreen() {
     const [modalVisible, setModalVisible] = useState<boolean>(false);
     const [submitting, setSubmitting] = useState<boolean>(false);
     const [loadingCats, setLoadingCats] = useState<boolean>(false);
-    // Budget period for date validation
     const [budgetStart, setBudgetStart] = useState<Date | null>(null);
     const [budgetEnd, setBudgetEnd] = useState<Date | null>(null);
+
+    // ── Edit / Delete ───────────────────────────────────────────────
+    /** ID de la transacción que se está editando (null = modo creación) */
+    const [editingId, setEditingId] = useState<number | null>(null);
+    /** Bottom-sheet de acciones (editar / eliminar) */
+    const [actionsVisible, setActionsVisible] = useState<boolean>(false);
+    const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+    const [deleting, setDeleting] = useState<boolean>(false);
 
     // Form state
     const [formAmount, setFormAmount] = useState<string>('');
@@ -65,18 +72,18 @@ export default function TransactionsScreen() {
     useEffect(() => {
         if (!modalVisible) return;
         loadActiveCategories(formType);
-        // Load active budget dates for validation
         budgetService.getActive().then(b => {
             if (b) {
                 setBudgetStart(new Date(b.startDate));
                 setBudgetEnd(new Date(b.endDate));
-                // Clamp today within budget period
-                const today = new Date();
-                const end = new Date(b.endDate);
-                setFormDate(today <= end ? today : end);
+                if (!editingId) {
+                    const today = new Date();
+                    const end = new Date(b.endDate);
+                    setFormDate(today <= end ? today : end);
+                }
             }
         }).catch(() => { });
-    }, [modalVisible, formType, loadActiveCategories]);
+    }, [modalVisible, formType, loadActiveCategories, editingId]);
 
     const onRefresh = () => { setRefreshing(true); loadTransactions(); };
 
@@ -95,8 +102,58 @@ export default function TransactionsScreen() {
         setFormIsExtraIncome(false);
         setFormDate(new Date());
         setShowDatePicker(false);
+        setEditingId(null);
     };
 
+    // ── Open actions bottom-sheet ────────────────────────────────────
+    const openActions = (tx: Transaction) => {
+        setSelectedTx(tx);
+        setActionsVisible(true);
+    };
+
+    // ── Open edit form ───────────────────────────────────────────────
+    const openEditForm = (tx: Transaction) => {
+        setActionsVisible(false);
+        setEditingId(tx.id);
+        setFormAmount(String(tx.amount));
+        setFormType(tx.type as 'Income' | 'Expense');
+        setFormCategoryId(tx.categoryId ?? null);
+        setFormDescription(tx.description ?? '');
+        setFormIsExtraIncome(tx.isExtraIncome ?? false);
+        setFormDate(new Date(tx.date));
+        setModalVisible(true);
+    };
+
+    // ── Delete ───────────────────────────────────────────────────────
+    const handleDelete = () => {
+        if (!selectedTx) return;
+        Alert.alert(
+            '🗑️ Eliminar transacción',
+            `¿Seguro que deseas eliminar esta transacción de ${formatCRC(selectedTx.amount)}?`,
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Eliminar',
+                    style: 'destructive',
+                    onPress: async () => {
+                        setActionsVisible(false);
+                        setDeleting(true);
+                        try {
+                            await transactionService.delete(selectedTx.id);
+                            loadTransactions();
+                        } catch {
+                            Alert.alert('Error', 'No se pudo eliminar la transacción.');
+                        } finally {
+                            setDeleting(false);
+                            setSelectedTx(null);
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
+    // ── Submit (create OR update) ────────────────────────────────────
     const handleSubmit = async () => {
         const amount = parseFloat(formAmount.replace(/,/g, ''));
         if (isNaN(amount) || amount <= 0) {
@@ -107,7 +164,6 @@ export default function TransactionsScreen() {
             Alert.alert('Error', 'Selecciona una categoría.');
             return;
         }
-        // Validate date within budget period
         if (budgetStart && formDate < budgetStart) {
             Alert.alert('Fecha inválida', `La fecha debe ser igual o posterior al inicio del período: ${budgetStart.toLocaleDateString('es-CR')}.`);
             return;
@@ -121,25 +177,30 @@ export default function TransactionsScreen() {
             }
         }
 
+        const y = formDate.getFullYear();
+        const m = String(formDate.getMonth() + 1).padStart(2, '0');
+        const d = String(formDate.getDate()).padStart(2, '0');
+        const payload = {
+            amount,
+            type: formType,
+            categoryId: formCategoryId,
+            date: `${y}-${m}-${d}`,
+            description: formDescription.trim() || undefined,
+            isExtraIncome: formType === 'Income' ? formIsExtraIncome : false,
+        };
+
         setSubmitting(true);
         try {
-            // Format selected date as YYYY-MM-DD in local time
-            const y = formDate.getFullYear();
-            const m = String(formDate.getMonth() + 1).padStart(2, '0');
-            const d = String(formDate.getDate()).padStart(2, '0');
-            await transactionService.create({
-                amount,
-                type: formType,
-                categoryId: formCategoryId,
-                date: `${y}-${m}-${d}`,
-                description: formDescription.trim() || undefined,
-                isExtraIncome: formType === 'Income' ? formIsExtraIncome : false,
-            });
+            if (editingId != null) {
+                await transactionService.update(editingId, payload);
+            } else {
+                await transactionService.create(payload);
+            }
             setModalVisible(false);
             resetForm();
             loadTransactions();
         } catch (e: any) {
-            const msg = e?.response?.data?.message ?? 'No se pudo crear la transacción.';
+            const msg = e?.response?.data?.message ?? 'No se pudo guardar la transacción.';
             Alert.alert('Error', msg);
         } finally {
             setSubmitting(false);
@@ -153,7 +214,11 @@ export default function TransactionsScreen() {
     };
 
     const renderItem = ({ item }: { item: Transaction }) => (
-        <View style={styles.txCard}>
+        <TouchableOpacity
+            style={styles.txCard}
+            onPress={() => openActions(item)}
+            activeOpacity={0.75}
+        >
             <View style={[styles.txDot, { backgroundColor: item.type === 'Income' ? colors.income : colors.expense }]} />
             <View style={styles.txInfo}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -169,10 +234,13 @@ export default function TransactionsScreen() {
                 ) : null}
                 <Text style={styles.txDate}>{item.date.slice(0, 10)}</Text>
             </View>
-            <Text style={[styles.txAmount, { color: item.type === 'Income' ? colors.income : colors.expense }]}>
-                {item.type === 'Income' ? '+' : '-'}{formatCRC(item.amount)}
-            </Text>
-        </View>
+            <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                <Text style={[styles.txAmount, { color: item.type === 'Income' ? colors.income : colors.expense }]}>
+                    {item.type === 'Income' ? '+' : '-'}{formatCRC(item.amount)}
+                </Text>
+                <Text style={styles.txHint}>Toca para opciones</Text>
+            </View>
+        </TouchableOpacity>
     );
 
     if (loading) {
@@ -183,9 +251,9 @@ export default function TransactionsScreen() {
         );
     }
 
-    // Check if "Ingresos Adicionales" is selected
     const selectedCat = activeCategories.find(c => c.categoryId === formCategoryId);
     const isIngresoAdicional = selectedCat?.isSystemCategory ?? false;
+    const isEditing = editingId != null;
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
@@ -208,6 +276,13 @@ export default function TransactionsScreen() {
                     </TouchableOpacity>
                 ))}
             </View>
+
+            {deleting && (
+                <View style={styles.deletingBanner}>
+                    <ActivityIndicator size="small" color={colors.primary} />
+                    <Text style={styles.deletingText}>Eliminando…</Text>
+                </View>
+            )}
 
             <FlatList
                 data={filtered}
@@ -232,11 +307,58 @@ export default function TransactionsScreen() {
             />
 
             {/* FAB */}
-            <TouchableOpacity style={styles.fab} onPress={() => setModalVisible(true)} activeOpacity={0.8}>
+            <TouchableOpacity style={styles.fab} onPress={() => { resetForm(); setModalVisible(true); }} activeOpacity={0.8}>
                 <Text style={styles.fabText}>+</Text>
             </TouchableOpacity>
 
-            {/* Modal nueva transacción */}
+            {/* ── Acciones bottom-sheet ────────────────────────────── */}
+            <Modal
+                visible={actionsVisible}
+                animationType="slide"
+                transparent
+                onRequestClose={() => setActionsVisible(false)}
+            >
+                <TouchableOpacity
+                    style={styles.actionsOverlay}
+                    activeOpacity={1}
+                    onPress={() => setActionsVisible(false)}
+                >
+                    <View style={styles.actionsSheet}>
+                        <View style={styles.modalHandle} />
+                        {selectedTx && (
+                            <>
+                                <Text style={styles.actionsTitle}>
+                                    {selectedTx.type === 'Income' ? '↑' : '↓'} {selectedTx.categoryName}
+                                </Text>
+                                <Text style={styles.actionsAmount}>
+                                    {formatCRC(selectedTx.amount)}
+                                    {'  '}
+                                    <Text style={styles.actionsDate}>{selectedTx.date.slice(0, 10)}</Text>
+                                </Text>
+                            </>
+                        )}
+                        <View style={styles.actionsBtns}>
+                            <TouchableOpacity
+                                style={[styles.actionBtn, { borderColor: colors.primary }]}
+                                onPress={() => selectedTx && openEditForm(selectedTx)}
+                            >
+                                <Text style={[styles.actionBtnText, { color: colors.primary }]}>✏️  Editar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.actionBtn, { borderColor: colors.expense }]}
+                                onPress={handleDelete}
+                            >
+                                <Text style={[styles.actionBtnText, { color: colors.expense }]}>🗑️  Eliminar</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <TouchableOpacity style={styles.actionsCancelBtn} onPress={() => setActionsVisible(false)}>
+                            <Text style={styles.actionsCancelText}>Cancelar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+
+            {/* ── Modal crear / editar transacción ─────────────────── */}
             <Modal
                 visible={modalVisible}
                 animationType="slide"
@@ -249,7 +371,9 @@ export default function TransactionsScreen() {
                 >
                     <View style={styles.modalSheet}>
                         <View style={styles.modalHandle} />
-                        <Text style={styles.modalTitle}>Nueva Transacción</Text>
+                        <Text style={styles.modalTitle}>
+                            {isEditing ? '✏️ Editar Transacción' : 'Nueva Transacción'}
+                        </Text>
 
                         {/* Tipo */}
                         <View style={styles.typeRow}>
@@ -282,7 +406,7 @@ export default function TransactionsScreen() {
                             placeholderTextColor={colors.gray400}
                         />
 
-                        {/* Categorías del presupuesto activo */}
+                        {/* Categorías */}
                         <Text style={styles.fieldLabel}>Categoría</Text>
                         {loadingCats ? (
                             <ActivityIndicator size="small" color={colors.primary} style={{ marginBottom: spacing.md }} />
@@ -303,7 +427,6 @@ export default function TransactionsScreen() {
                                         style={[styles.catChip, formCategoryId === cat.categoryId ? styles.catChipActive : null]}
                                         onPress={() => {
                                             setFormCategoryId(cat.categoryId);
-                                            // Si selecciona "Ingresos Adicionales", marcar automáticamente como extra
                                             if (cat.isSystemCategory) setFormIsExtraIncome(true);
                                             else setFormIsExtraIncome(false);
                                         }}
@@ -317,7 +440,7 @@ export default function TransactionsScreen() {
                             </ScrollView>
                         )}
 
-                        {/* Toggle "Ingreso adicional" — visible solo para Income y categorías no-sistema */}
+                        {/* Toggle Ingreso adicional */}
                         {formType === 'Income' && formCategoryId !== null && !isIngresoAdicional && (
                             <View style={styles.extraToggleRow}>
                                 <View style={{ flex: 1 }}>
@@ -332,7 +455,6 @@ export default function TransactionsScreen() {
                                 />
                             </View>
                         )}
-                        {/* Badge explicativo si hay categoría de sistema seleccionada */}
                         {isIngresoAdicional && (
                             <View style={styles.extraInfoBanner}>
                                 <Text style={styles.extraInfoText}>
@@ -376,14 +498,12 @@ export default function TransactionsScreen() {
                                                 setShowDatePicker(false);
                                                 if (event.type === 'set' && selected) setFormDate(selected);
                                             } else {
-                                                // iOS: update live as user scrolls, don't close yet
                                                 if (selected) setFormDate(selected);
                                             }
                                         }}
                                         style={Platform.OS === 'ios' ? { height: 120 } : undefined}
                                         locale="es-CR"
                                     />
-                                    {/* iOS: explicit Listo button to close */}
                                     {Platform.OS === 'ios' && (
                                         <TouchableOpacity
                                             style={styles.datePickerDoneBtn}
@@ -395,7 +515,6 @@ export default function TransactionsScreen() {
                                 </View>
                             );
                         })()}
-
 
                         {/* Descripción */}
                         <Text style={styles.fieldLabel}>Descripción (opcional)</Text>
@@ -423,7 +542,7 @@ export default function TransactionsScreen() {
                             >
                                 {submitting
                                     ? <ActivityIndicator color={colors.white} />
-                                    : <Text style={styles.submitText}>Guardar</Text>
+                                    : <Text style={styles.submitText}>{isEditing ? 'Actualizar' : 'Guardar'}</Text>
                                 }
                             </TouchableOpacity>
                         </View>
@@ -462,6 +581,13 @@ const styles = StyleSheet.create({
     filterText: { ...(typography.bodySmall as object), color: colors.textSecondary, fontWeight: '600' },
     filterTextActive: { color: colors.white },
 
+    deletingBanner: {
+        flexDirection: 'row', alignItems: 'center', gap: 8,
+        backgroundColor: colors.white, paddingHorizontal: spacing.md,
+        paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: colors.border,
+    },
+    deletingText: { fontSize: 13, color: colors.textSecondary },
+
     listContent: { padding: spacing.md, gap: spacing.sm },
     emptyContainer: { flex: 1 },
     emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 80 },
@@ -480,6 +606,7 @@ const styles = StyleSheet.create({
     txDesc: { ...(typography.caption as object), color: colors.textSecondary },
     txDate: { ...(typography.caption as object), color: colors.gray400, marginTop: 2 },
     txAmount: { ...(typography.body as object), fontWeight: 'bold' },
+    txHint: { fontSize: 10, color: colors.gray400 },
     extraBadge: {
         backgroundColor: colors.accent + '30', borderRadius: 6,
         paddingHorizontal: 6, paddingVertical: 2,
@@ -494,6 +621,29 @@ const styles = StyleSheet.create({
     },
     fabText: { color: colors.white, fontSize: 28, lineHeight: 30, fontWeight: '300' },
 
+    // Actions bottom-sheet
+    actionsOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+    actionsSheet: {
+        backgroundColor: colors.white,
+        borderTopLeftRadius: borderRadius.xl, borderTopRightRadius: borderRadius.xl,
+        padding: spacing.lg, paddingBottom: spacing.xxl,
+    },
+    actionsTitle: { fontSize: 16, fontWeight: '700', color: colors.text, textAlign: 'center', marginBottom: 4 },
+    actionsAmount: { fontSize: 22, fontWeight: '800', color: colors.text, textAlign: 'center', marginBottom: spacing.lg },
+    actionsDate: { fontSize: 14, fontWeight: '400', color: colors.textSecondary },
+    actionsBtns: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.md },
+    actionBtn: {
+        flex: 1, paddingVertical: spacing.md, borderRadius: borderRadius.md,
+        borderWidth: 1.5, alignItems: 'center',
+    },
+    actionBtnText: { fontSize: 15, fontWeight: '700' },
+    actionsCancelBtn: {
+        paddingVertical: spacing.md, borderRadius: borderRadius.md,
+        backgroundColor: colors.gray100, alignItems: 'center',
+    },
+    actionsCancelText: { color: colors.textSecondary, fontWeight: '600' },
+
+    // Create/Edit modal
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
     modalSheet: {
         backgroundColor: colors.white,
