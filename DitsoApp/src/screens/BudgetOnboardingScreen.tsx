@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import {
     View, Text, StyleSheet, ScrollView, TouchableOpacity,
-    TextInput, Alert, ActivityIndicator, Platform, KeyboardAvoidingView,
+    TextInput, Alert, ActivityIndicator, Platform, KeyboardAvoidingView, Modal,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { colors } from '../theme';
 import { budgetService } from '../services/budgetService';
+import { categoryService } from '../services/categoryService';
 import { SuggestedDistributionItem } from '../types';
 
 type Period = 'Semanal' | 'Quincenal' | 'Mensual' | 'Personalizado';
@@ -38,6 +39,49 @@ export default function BudgetOnboardingScreen({ onBudgetCreated }: Props) {
     const [detailedItems, setDetailedItems] = useState<
         { categoryId: number; categoryName: string; categoryIcon: string; amount: string }[]
     >([]);
+
+    // ── Add-category modal ───────────────────────────────────────────────────
+    const [showCatModal, setShowCatModal] = useState(false);
+    const [newCatName, setNewCatName] = useState('');
+    const [newCatEmoji, setNewCatEmoji] = useState('📦');
+    const [newCatAmount, setNewCatAmount] = useState('');
+    const [savingCat, setSavingCat] = useState(false);
+
+    const openCatModal = () => {
+        setNewCatName('');
+        setNewCatEmoji('📦');
+        setNewCatAmount('');
+        setShowCatModal(true);
+    };
+
+    const handleAddCategory = async () => {
+        if (!newCatName.trim()) {
+            Alert.alert('Nombre requerido', 'Ingresa un nombre para la categoría.');
+            return;
+        }
+        setSavingCat(true);
+        try {
+            const created = await categoryService.create({
+                name: newCatName.trim(),
+                type: 'Expense',
+                icon: newCatEmoji,
+            });
+            setDetailedItems(prev => [...prev, {
+                categoryId: created.id,
+                categoryName: created.name,
+                categoryIcon: created.icon ?? newCatEmoji,
+                amount: newCatAmount,
+            }]);
+            setShowCatModal(false);
+        } catch {
+            Alert.alert('Error', 'No se pudo crear la categoría.');
+        } finally {
+            setSavingCat(false);
+        }
+    };
+
+    const removeDetailedItem = (idx: number) =>
+        setDetailedItems(prev => prev.filter((_, i) => i !== idx));
 
     const formatDateLabel = (d: Date) =>
         d.toLocaleDateString('es-CR', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -287,35 +331,64 @@ export default function BudgetOnboardingScreen({ onBudgetCreated }: Props) {
                 {/* ── DETAILED MODE ── */}
                 {mode === 'detailed' && (
                     <>
-                        {detailedItems.length === 0 && (
-                            <TouchableOpacity style={s.calcBtn} onPress={loadSuggested} disabled={loadingSugg}>
-                                {loadingSugg
-                                    ? <ActivityIndicator color="#fff" />
-                                    : <Text style={s.calcBtnText}>📂 Cargar categorías</Text>
-                                }
-                            </TouchableOpacity>
-                        )}
+                        {/* Load from server (first time) */}
+                        <TouchableOpacity
+                            style={[s.calcBtn, loadingSugg && { opacity: 0.6 }]}
+                            onPress={loadSuggested}
+                            disabled={loadingSugg}
+                        >
+                            {loadingSugg
+                                ? <ActivityIndicator color="#fff" />
+                                : <Text style={s.calcBtnText}>📂 {detailedItems.length === 0 ? 'Cargar categorías sugeridas' : 'Recargar sugeridas'}</Text>
+                            }
+                        </TouchableOpacity>
 
+                        {/* Category rows */}
                         {detailedItems.length > 0 && (
                             <>
                                 <Text style={s.sectionTitle}>Asignación por categoría</Text>
-                                {detailedItems.map((item, idx) => (
-                                    <View key={idx} style={s.categoryRow}>
-                                        <Text style={s.categoryName}>{item.categoryName}</Text>
-                                        <TextInput
-                                            style={s.categoryInput}
-                                            keyboardType="numeric"
-                                            placeholder="₡ 0"
-                                            placeholderTextColor={colors.textSecondary}
-                                            value={item.amount}
-                                            onChangeText={v => setDetailedItems(prev =>
-                                                prev.map((d, i) => i === idx ? { ...d, amount: v } : d)
-                                            )}
-                                        />
-                                    </View>
-                                ))}
+                                {detailedItems.map((item, idx) => {
+                                    const pct = total > 0
+                                        ? ((parseFloat(item.amount) || 0) / total * 100).toFixed(1)
+                                        : '0.0';
+                                    return (
+                                        <View key={idx} style={s.categoryRow}>
+                                            <Text style={s.categoryEmoji}>{item.categoryIcon}</Text>
+                                            <View style={s.categoryLeft}>
+                                                <Text style={s.categoryName}>{item.categoryName}</Text>
+                                                <Text style={s.categoryPct}>{pct}%</Text>
+                                            </View>
+                                            <TextInput
+                                                style={s.categoryInput}
+                                                keyboardType="numeric"
+                                                placeholder="₡ 0"
+                                                placeholderTextColor={colors.textSecondary}
+                                                value={item.amount}
+                                                onChangeText={v => setDetailedItems(prev =>
+                                                    prev.map((d, i) => i === idx ? { ...d, amount: v } : d)
+                                                )}
+                                            />
+                                            <TouchableOpacity
+                                                style={s.removeBtn}
+                                                onPress={() => removeDetailedItem(idx)}
+                                                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                            >
+                                                <Text style={s.removeBtnText}>✕</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    );
+                                })}
+                            </>
+                        )}
 
-                                {/* Running total indicator */}
+                        {/* Add category button */}
+                        <TouchableOpacity style={s.addCatBtn} onPress={openCatModal}>
+                            <Text style={s.addCatText}>+ Agregar categoría</Text>
+                        </TouchableOpacity>
+
+                        {/* Running total indicator */}
+                        {detailedItems.length > 0 && (
+                            <>
                                 <View style={[s.totalIndicator, { borderColor: remainingColor }]}>
                                     <Text style={s.totalIndicatorLabel}>Total asignado</Text>
                                     <Text style={[s.totalIndicatorValue, { color: colors.text }]}>
@@ -354,6 +427,63 @@ export default function BudgetOnboardingScreen({ onBudgetCreated }: Props) {
 
                 <View style={{ height: 40 }} />
             </ScrollView>
+
+            {/* ── Add-category Modal ── */}
+            <Modal visible={showCatModal} transparent animationType="slide" onRequestClose={() => setShowCatModal(false)}>
+                <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setShowCatModal(false)} />
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    style={s.modalSheet}
+                >
+                    <View style={s.modalHandle} />
+                    <Text style={s.modalTitle}>Nueva categoría de gasto</Text>
+
+                    <Text style={s.modalLabel}>Emoji</Text>
+                    <TextInput
+                        style={s.modalEmojiInput}
+                        value={newCatEmoji}
+                        onChangeText={setNewCatEmoji}
+                        maxLength={2}
+                        placeholder="📦"
+                    />
+
+                    <Text style={s.modalLabel}>Nombre</Text>
+                    <TextInput
+                        style={s.modalInput}
+                        value={newCatName}
+                        onChangeText={setNewCatName}
+                        placeholder="Ej: Transporte, Comida..."
+                        placeholderTextColor={colors.textSecondary}
+                        autoFocus
+                    />
+
+                    <Text style={s.modalLabel}>Monto asignado (opcional)</Text>
+                    <TextInput
+                        style={s.modalInput}
+                        value={newCatAmount}
+                        onChangeText={setNewCatAmount}
+                        keyboardType="numeric"
+                        placeholder="₡ 0"
+                        placeholderTextColor={colors.textSecondary}
+                    />
+
+                    <View style={s.modalBtns}>
+                        <TouchableOpacity style={s.modalCancelBtn} onPress={() => setShowCatModal(false)}>
+                            <Text style={s.modalCancelText}>Cancelar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[s.modalSaveBtn, savingCat && { opacity: 0.6 }]}
+                            onPress={handleAddCategory}
+                            disabled={savingCat}
+                        >
+                            {savingCat
+                                ? <ActivityIndicator color="#fff" size="small" />
+                                : <Text style={s.modalSaveText}>Agregar</Text>
+                            }
+                        </TouchableOpacity>
+                    </View>
+                </KeyboardAvoidingView>
+            </Modal>
         </KeyboardAvoidingView>
     );
 }
@@ -425,6 +555,66 @@ const s = StyleSheet.create({
         color: colors.primary,
         fontWeight: '700',
     },
+
+    // Category row extras
+    categoryEmoji: { fontSize: 20, marginRight: 2 },
+    removeBtn: { padding: 4 },
+    removeBtnText: { fontSize: 16, color: colors.error, fontWeight: '700' },
+
+    // Add category button
+    addCatBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1.5,
+        borderColor: colors.primary,
+        borderStyle: 'dashed',
+        borderRadius: 12,
+        padding: 12,
+        marginTop: 12,
+    },
+    addCatText: { fontSize: 14, color: colors.primary, fontWeight: '700' },
+
+    // Add-category modal
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
+    modalSheet: {
+        backgroundColor: colors.surface,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        padding: 24,
+        paddingTop: 12,
+        gap: 4,
+    },
+    modalHandle: {
+        width: 40, height: 4, borderRadius: 2,
+        backgroundColor: colors.border,
+        alignSelf: 'center',
+        marginBottom: 16,
+    },
+    modalTitle: { fontSize: 17, fontWeight: '700', color: colors.text, marginBottom: 8 },
+    modalLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginTop: 12, marginBottom: 4, textTransform: 'uppercase' },
+    modalEmojiInput: {
+        fontSize: 28,
+        textAlign: 'center',
+        borderWidth: 1, borderColor: colors.border, borderRadius: 12,
+        padding: 10, backgroundColor: colors.background, width: 64,
+    },
+    modalInput: {
+        borderWidth: 1, borderColor: colors.border, borderRadius: 12,
+        padding: 12, fontSize: 15, color: colors.text, backgroundColor: colors.background,
+    },
+    modalBtns: { flexDirection: 'row', gap: 12, marginTop: 20, marginBottom: 8 },
+    modalCancelBtn: {
+        flex: 1, padding: 14, borderRadius: 12,
+        borderWidth: 1, borderColor: colors.border, alignItems: 'center',
+    },
+    modalCancelText: { fontSize: 15, color: colors.textSecondary, fontWeight: '600' },
+    modalSaveBtn: {
+        flex: 2, padding: 14, borderRadius: 12,
+        backgroundColor: colors.primary, alignItems: 'center',
+    },
+    modalSaveText: { fontSize: 15, color: '#fff', fontWeight: '700' },
+
     createBtn: { backgroundColor: colors.success, borderRadius: 16, padding: 18, alignItems: 'center', marginTop: 24 },
     createBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
 });
